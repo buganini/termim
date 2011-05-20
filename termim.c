@@ -75,6 +75,7 @@ static void dodock();
 static void fail(void);
 static void finish(void);
 static void usage(void);
+void sigchild(int);
 void sigforwarder(int);
 void winchforwarder(int);
 
@@ -145,6 +146,8 @@ main(int argc, char *argv[])
 	kmap.key[54].map[2] = CTRL_SHIFT;
 	kmap.key[57].map[2] = CTRL_SPACE;
 	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
+
+	signal(SIGCHLD, &sigchild);
 
 	child = fork();
 	if (child < 0) {
@@ -238,6 +241,12 @@ main(int argc, char *argv[])
 	}
 	finish();
 	done(0);
+}
+
+void
+sigchild(int sig)
+{
+	done(1);
 }
 
 void
