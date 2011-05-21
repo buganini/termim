@@ -53,6 +53,30 @@ ssize_t term_read(struct term *term, void *buf, size_t len){
 	return read(term->out, buf, len);
 }
 
+void term_get_cursor(struct term *term){
+	int i;
+	char buf[128];
+	int argi;
+	char **argv;
+	int ia[8]={0};
+	write(term->out, buf, sprintf(buf, "\033" "7\033[6n"));
+	i=read(term->out, buf, sizeof(buf));
+	buf[i-1]=0;
+	argv=parse_arg(&buf[2]);
+	for(argi=0;argv[argi]!=NULL && argi<8;++argi){
+		ia[argi]=strtol(argv[argi], NULL, 10);
+	}
+	term->cur_row=ia[0];
+	term->cur_col=ia[1];
+	free(argv[0]);
+	write(term->out, buf, sprintf(buf, "\033" "8"));
+}
+
+void term_put_cursor(struct term *term){
+	char buf[128];
+	write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, term->cur_col));
+}
+
 ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
 	int argi;
@@ -61,13 +85,23 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	int ia[8]={0};
 
 	write(term->out, buf, sprintf(buf, "\033[%d;%dr", 1+term->off_row, 1+term->off_row+term->siz_row));
-	write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, term->cur_col));
+	term_put_cursor(term);
 	write(term->out, term->display, term->display_len);
 	for(j=i=0;i<len;++i){
-		if(ibuf[i]=='\x1b'){
-			term->i=0;
-			term->escape=1;
-			write(term->out, ibuf+j, i-j);
+		switch(ibuf[i]){
+			case '\x1b':
+				term->i=0;
+				term->escape=1;
+				write(term->out, ibuf+j, i-j);
+				break;
+			case '\n':
+				write(term->out, ibuf+j, i-j+1);
+				j=i+1;
+				term_get_cursor(term);
+				term->cur_col+=term->off_col;
+				term_put_cursor(term);
+				break;
+				
 		}
 		if(term->escape){
 			term->buf[term->i]=ibuf[i];
@@ -146,17 +180,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	}
 	ret+=r;
 
-	write(term->out, buf, sprintf(buf, "\033" "7\033[6n"));
-	i=read(term->out, buf, sizeof(buf));
-	buf[i-1]=0;
-	argv=parse_arg(&buf[2]);
-	for(argi=0;argv[argi]!=NULL && argi<8;++argi){
-		ia[argi]=strtol(argv[argi], NULL, 10);
-	}
-	term->cur_row=ia[0];
-	term->cur_col=ia[1];
-	free(argv[0]);
-	write(term->out, buf, sprintf(buf, "\033" "8"));
+	term_get_cursor(term);
 	return ret;
 }
 
