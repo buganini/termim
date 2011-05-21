@@ -47,6 +47,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "term.h"
+
 enum KCode {
 	CTRL_SPACE = 200,
 	CTRL_SHIFT,
@@ -59,6 +61,7 @@ enum KCode {
 	CTRL_RIGHT,
 };
 
+struct term *term, *term2;
 static int master, slave;
 static int master2, slave2;
 static int child, child2;
@@ -66,8 +69,6 @@ static int qflg, ttyflg;
 int tube[2];
 
 static struct termios tt;
-
-char op_ime_cursor[64];
 
 static void done(int) __dead2;
 static void doshell(char **);
@@ -88,8 +89,9 @@ main(int argc, char *argv[])
 	int ch, n;
 	struct timeval tv, *tvp;
 	time_t tvec, start;
-	unsigned char obuf[BUFSIZ];
-	unsigned char ibuf[BUFSIZ];
+	char obuf[BUFSIZ];
+	char ibuf[BUFSIZ];
+	
 	fd_set rfd;
 	int flushtime = 30;
 	keymap_t kmap;
@@ -112,11 +114,18 @@ main(int argc, char *argv[])
 			err(1, "tcgetattr");
 		if (ioctl(STDIN_FILENO, TIOCGWINSZ, &win) == -1)
 			err(1, "ioctl");
-		win.ws_row-=1;
-		sprintf(op_ime_cursor, "\033[%d;H", win.ws_row);
+		win.ws_row-=2;
+		term=term_create();
+		term_assoc_output(term, STDOUT_FILENO);
+		term_set_size(term, win.ws_row, win.ws_col);
+		term_set_offset(term, 0, 0);
 		if (openpty(&master, &slave, NULL, &tt, &win) == -1)
 			err(1, "openpty");
-		win.ws_row=1;
+		term2=term_create();
+		term_assoc_output(term2, STDOUT_FILENO);
+		term_set_size(term2, 2, win.ws_col);
+		term_set_offset(term2, win.ws_row, 0);
+		win.ws_row=2;
 		if (openpty(&master2, &slave2, NULL, &tt, &win) == -1)
 			err(1, "openpty");
 	} else {
@@ -206,7 +215,7 @@ main(int argc, char *argv[])
 			if (cc < 0)
 				break;
 			else if (cc == 0)
-				(void)write(master, ibuf, 0);
+				write(master, ibuf, 0);
 			else if(cc == 1){
 				write(master2, ibuf, 1);
 			}
@@ -218,14 +227,13 @@ main(int argc, char *argv[])
 			cc = read(master, obuf, sizeof (obuf));
 			if (cc <= 0)
 				break;
-			write(STDOUT_FILENO, obuf, cc);
+			term_write(term, obuf, cc);
 		}
 		if (n > 0 && FD_ISSET(master2, &rfd)) {
 			cc = read(master2, obuf, sizeof (obuf));
 			if (cc <= 0)
 				break;
-			write(STDOUT_FILENO, op_ime_cursor, strlen(op_ime_cursor));
-			write(STDOUT_FILENO, obuf, cc);
+			term_write(term2, obuf, cc);
 		}
 		if (n > 0 && FD_ISSET(tube[0], &rfd)) {
 			cc = read(tube[0], obuf, sizeof (obuf));
@@ -260,12 +268,15 @@ winchforwarder(int sig)
 {
 	struct winsize win;
 	ioctl(STDIN_FILENO, TIOCGWINSZ, &win);
-	win.ws_row-=1;
-	sprintf(op_ime_cursor, "\033[%d;H", win.ws_row);
+	win.ws_row-=2;
+	term_set_size(term, win.ws_row, win.ws_col);
+	term_set_offset(term, 0, 0);
 	ioctl(master, TIOCSWINSZ, &win);
-	win.ws_row=1;
+	term_set_size(term2, 2, win.ws_col);
+	term_set_offset(term2, win.ws_row, 0);
+	win.ws_row=2;
 	ioctl(master2, TIOCSWINSZ, &win);
-	kill(child, sig);	
+	kill(child, sig);
 }
 
 
@@ -335,12 +346,12 @@ static void
 dodock()
 {
 	char buf[16];
-	char *argv[]={"./ibus", buf,NULL};
+	char *argv[]={"/usr/local/libexec/termim-ibus", buf,NULL};
 	(void)close(tube[0]);
 	(void)close(master2);
 	login_tty(slave2);
 	sprintf(buf, "%d",tube[1]);
-	execvp("./termim-ibus", argv);
+	execvp(argv[0], argv);
 	warn("%s", "ime");
 	fail();
 }
@@ -360,6 +371,8 @@ done(int eno)
 	if (ttyflg)
 		(void)tcsetattr(STDIN_FILENO, TCSAFLUSH, &tt);
 	tvec = time(NULL);
+	term_destroy(term);
+	term_destroy(term2);
 	(void)close(master);
 	(void)close(master2);
 	exit(eno);
