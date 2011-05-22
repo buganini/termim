@@ -19,6 +19,10 @@ struct term {
 	int off_row;
 	int off_col;
 
+	/* scroll region */
+	int scr_beg;
+	int scr_end;
+
 	/* backup of display attributes setting string */
 	char *display;
 	int display_len;
