@@ -47,9 +47,11 @@
 #include <termios.h>
 #include <unistd.h>
 
-#include "term.h"
 #include "keymap.h"
+#include "term.h"
+#include "tty.h"
 
+struct tty *tty;
 struct term *term, *term2;
 static int master, slave;
 static int master2, slave2;
@@ -83,7 +85,6 @@ main(int argc, char *argv[])
 	
 	fd_set rfd;
 	int flushtime = 30;
-	keymap_t kmap;
 	int nfds=0;
 
 	while ((ch = getopt(argc, argv, "")) != -1)
@@ -124,6 +125,10 @@ main(int argc, char *argv[])
 			err(1, "openpty");
 	}
 
+	tty=tty_create();
+	tty_assoc_input(tty, STDIN_FILENO);
+	tty_assoc_output(tty, master2);
+
 	if (!qflg) {
 		tvec = time(NULL);
 	}
@@ -138,12 +143,6 @@ main(int argc, char *argv[])
 	cfmakeraw(&rtt);
 	rtt.c_lflag &= ~ECHO;
 	tcsetattr(master2, TCSAFLUSH, &rtt);
-
-	ioctl(STDIN_FILENO, GIO_KEYMAP, &kmap);
-	kmap.key[42].map[2] = CTRL_SHIFT;
-	kmap.key[54].map[2] = CTRL_SHIFT;
-	kmap.key[57].map[2] = CTRL_SPACE;
-	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
 
 	signal(SIGCHLD, &sigchild);
 
@@ -200,17 +199,9 @@ main(int argc, char *argv[])
 		if (n < 0 && errno != EINTR)
 			break;
 		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)) {
-			cc = read(STDIN_FILENO, ibuf, BUFSIZ);
+			cc = tty_read_write(tty, ibuf, BUFSIZ);
 			if (cc < 0)
 				break;
-			else if (cc == 0)
-				write(master, ibuf, 0);
-			else if(cc == 1){
-				write(master2, ibuf, 1);
-			}
-			else if (cc > 0){
-				write(master, ibuf, cc);
-			}
 		}
 		if (n > 0 && FD_ISSET(master, &rfd)) {
 			cc = read(master, obuf, sizeof (obuf));
@@ -360,6 +351,7 @@ done(int eno)
 	if (ttyflg)
 		(void)tcsetattr(STDIN_FILENO, TCSAFLUSH, &tt);
 	tvec = time(NULL);
+	tty_destroy(tty);
 	term_destroy(term);
 	term_destroy(term2);
 	(void)close(master);

@@ -2,7 +2,7 @@ CFLAGS+=-g -Wall -I/usr/local/include
 LDFLAGS+=-L/usr/local/lib
 
 all:
-	$(CC) ${CFLAGS} ${LDFLAGS} -lutil term.c termim.c -o termim
+	$(CC) ${CFLAGS} ${LDFLAGS} -lutil common.c tty.c term.c termim.c -o termim
 	$(CC) ${CFLAGS} ${LDFLAGS} -lchewing termim-chewing.c -o termim-chewing
 
 install:

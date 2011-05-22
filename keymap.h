@@ -1,11 +1,12 @@
 enum KCode {
 	CTRL_SPACE = 200,
 	CTRL_SHIFT,
+	UP,
+	DOWN,
 	LEFT,
 	RIGHT,
 	SPACE,
-	UP,
-	DOWN,
 	CTRL_LEFT,
 	CTRL_RIGHT,
+	BACKSPACE,
 };

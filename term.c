@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "term.h"
+#include "common.h"
 
 /*
  * This library draw on tty specified by $slave
@@ -79,6 +80,13 @@ void term_put_cursor(struct term *term){
 	write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, term->cur_col));
 }
 
+#define POST_WRITE() \
+if(r<0){ \
+	return r; \
+} \
+ret+=r;
+
+
 ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
 	int argi;
@@ -129,10 +137,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								ia[0]+=term->off_row;
 								ia[1]+=term->off_col;
 								r=write(term->out, buf, sprintf(buf, "\033[%d;%dH", ia[0], ia[1]));
-								if(r<0){
-									return r;
-								}
-								ret+=r;
+								POST_WRITE();
 								free(argv[0]);
 								break;
 							case 'm':
@@ -140,10 +145,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								memcpy(term->display, term->buf, term->i);
 								term->display_len=term->i;
 								r=write(term->out, term->buf, term->i);
-								if(r<0){
-									return r;
-								}
-								ret+=r;
+								POST_WRITE();
 								break;
 							case 'r':
 								term->buf[term->i-1]=0;
@@ -154,58 +156,28 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								ia[0]+=term->off_row;
 								ia[1]+=term->off_row;
 								r=write(term->out, buf, sprintf(buf, "\033[%d;%dr", ia[0], ia[1]));
-								if(r<0){
-									return r;
-								}
-								ret+=r;
+								POST_WRITE();
 								free(argv[0]);
 								break;
 							default:
 								r=write(term->out, term->buf, term->i);
-								if(r<0){
-									return r;
-								}
-								ret+=r;
+								POST_WRITE();
 								break;
 						}
 						break;
 					default:
 						r=write(term->out, term->buf, term->i);
-						if(r<0){
-							return r;
-						}
-						ret+=r;
+						POST_WRITE();
 						break;
 				}
 			}
 		}
 	}
-	if(i-j>0)
+	if(i-j>0){
 		r=write(term->out, ibuf+j, i-j);
-	if(r<0){
-		return r;
+		POST_WRITE();
 	}
-	ret+=r;
 
 	term_get_cursor(term);
 	return ret;
-}
-
-char ** parse_arg(char *s){
-	int size=0;
-	int argi=0;
-	char *str=strdup(s);
-	char *p=str;
-	char *t;
-	char **argv=NULL;
-	while((t=strsep(&p, ";")) != NULL){
-		if(argi>=size){
-			size+=8;
-			argv=realloc(argv, sizeof(char *)*size);
-		}
-		argv[argi]=t;
-		argi+=1;
-	}
-	argv[argi]=NULL;
-	return argv;
 }
