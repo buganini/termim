@@ -16,6 +16,7 @@ ChewingContext *ctx;
 int out;
 int active=0;
 char *chewing_buf;
+char *zuin_buf;
 
 static int selKey_define[ 11 ] = {'1','2','3','4','5','6','7','8','9','0',0};
 
@@ -27,6 +28,8 @@ winch(int sig){
 }
 
 void draw(){
+	int nul;
+	int n=0;
 	char tbuf[64];
 	printf("\033[H");
 	if(active){
@@ -35,8 +38,10 @@ void draw(){
 		printf("[英數] ");
 	}
 	chewing_buf=chewing_buffer_String(ctx);
-	sprintf(tbuf,"%%-%ds", win.ws_col-7);
-	printf(tbuf, chewing_buf);
+	zuin_buf=chewing_zuin_String( ctx, &nul);
+	n+=printf("%s", chewing_buf);
+	sprintf(tbuf,"%%-%ds", win.ws_col-7-n);
+	printf(tbuf, zuin_buf);
 	printf("\n");
 	fflush(stdout);
 }
@@ -90,31 +95,24 @@ int main(int argc, char *argv[]){
 				if(active){
 					switch(c){
 						case SPACE:
-							printf("SPACE\n");
 							chewing_handle_Space(ctx);
 							break;
 						case ENTER:
-							printf("ENTER\n");
 							chewing_handle_Enter(ctx);
 							break;
 						case BACKSPACE:
-							printf("BACKSPACE\n");
 							chewing_handle_Backspace(ctx);
 							break;
 						case UP:
-							printf("UP\n");
 							chewing_handle_Up(ctx);
 							break;
 						case DOWN:
-							printf("DOWN\n");
 							chewing_handle_Down(ctx);
 							break;
 						case LEFT:
-							printf("LEFT\n");
 							chewing_handle_Left(ctx);
 							break;
 						case RIGHT:
-							printf("RIGHT\n");
 							chewing_handle_Right(ctx);
 							break;
 						default:
