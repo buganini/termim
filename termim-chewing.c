@@ -15,8 +15,6 @@
 ChewingContext *ctx;
 int out;
 int active=0;
-char *chewing_buf;
-char *zuin_buf;
 
 static int selKey_define[ 11 ] = {'1','2','3','4','5','6','7','8','9','0',0};
 
@@ -28,6 +26,8 @@ winch(int sig){
 }
 
 void draw(){
+	char *s;
+	int i;
 	int nul;
 	int n=0;
 	char tbuf[64];
@@ -37,12 +37,26 @@ void draw(){
 	}else{
 		printf("[英數] ");
 	}
-	chewing_buf=chewing_buffer_String(ctx);
-	zuin_buf=chewing_zuin_String( ctx, &nul);
-	n+=printf("%s", chewing_buf);
+	s=chewing_buffer_String(ctx);
+	n+=printf("%s", s);
+
 	sprintf(tbuf,"%%-%ds", win.ws_col-7-n);
-	printf(tbuf, zuin_buf);
-	printf("\n");
+	s=chewing_zuin_String( ctx, &nul);
+	printf(tbuf, s);
+
+	printf("\r\n");
+
+	if(n){
+		chewing_cand_Enumerate(ctx);
+		i=1;
+		while(chewing_cand_hasNext(ctx)){
+			s=chewing_cand_String(ctx);
+			printf("%d.%s ", i, s);
+			++i;
+			if(i==10)
+				break;
+		}
+	}
 	fflush(stdout);
 }
 
