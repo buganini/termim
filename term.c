@@ -97,9 +97,13 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 			case '\n':
 				write(term->out, ibuf+j, i-j+1);
 				j=i+1;
-				//term_get_cursor(term);
-				//term->cur_col+=term->off_col;
+				/* slow method
+				 * term_get_cursor(term);
+				 * term->cur_col+=term->off_col;
+				 */
 				term->cur_row+=1;
+				if(term->cur_row > 1+term->off_row+term->siz_row)
+					term->cur_row=1+term->off_row+term->siz_row;
 				term->cur_col=1+term->off_col;
 				term_put_cursor(term);
 				break;
