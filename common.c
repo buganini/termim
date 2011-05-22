@@ -10,18 +10,15 @@ char ** parse_arg(char *s){
 	char *t;
 	char **argv=NULL;
 
-/*
-XXX
-doesn't handle empty input correcly
-*/
-	while((t=strsep(&p, ";")) != NULL){
+	t=NULL;
+	do{
 		if(argi>=size){
 			size+=8;
 			argv=realloc(argv, sizeof(char *)*size);
 		}
 		argv[argi]=t;
 		argi+=1;
-	}
+	}while((t=strsep(&p, ";")) != NULL);
 	argv[argi]=NULL;
 	return argv;
 }
