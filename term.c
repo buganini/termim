@@ -56,25 +56,6 @@ ssize_t term_read(struct term *term, void *buf, size_t len){
 	return read(term->out, buf, len);
 }
 
-void term_get_cursor(struct term *term){
-	int i;
-	char buf[128];
-	int argi;
-	char **argv;
-	int ia[8]={0};
-	write(term->out, buf, sprintf(buf, "\033" "7\033[6n"));
-	i=read(term->out, buf, sizeof(buf));
-	buf[i-1]=0;
-	argv=parse_arg(&buf[2]);
-	for(argi=0;argv[argi]!=NULL && argi<8;++argi){
-		ia[argi]=strtol(argv[argi], NULL, 10);
-	}
-	term->cur_row=ia[0];
-	term->cur_col=ia[1];
-	free(argv[0]);
-	write(term->out, buf, sprintf(buf, "\033" "8"));
-}
-
 void term_put_cursor(struct term *term){
 	char buf[128];
 	write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, term->cur_col));
@@ -104,17 +85,17 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				r=write(term->out, ibuf+j, i-j);
 				//XXX Unicode
 				term->cur_col+=r;
+				if(term->cur_col > term->siz_col){
+					term->cur_row += term->cur_col / term->siz_col;
+					term->cur_col /= term->siz_col;
+				}
 				break;
 			case '\n':
 				write(term->out, ibuf+j, i-j+1);
 				j=i+1;
-				/* slow method
-				 * term_get_cursor(term);
-				 * term->cur_col+=term->off_col;
-				 */
 				term->cur_row+=1;
-				if(term->cur_row > 1+term->off_row+term->siz_row)
-					term->cur_row=1+term->off_row+term->siz_row;
+				if(term->cur_row > term->siz_row)
+					term->cur_row=term->siz_row;
 				term->cur_col=1+term->off_col;
 				term_put_cursor(term);
 				break;
@@ -181,9 +162,12 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 		r=write(term->out, ibuf+j, i-j);
 		//XXX Unicode
 		term->cur_col+=r;
+		if(term->cur_col > term->siz_col){
+			term->cur_row += term->cur_col / term->siz_col;
+			term->cur_col /= term->siz_col;
+		}
 		POST_WRITE();
 	}
 
-	//term_get_cursor(term);
 	return ret;
 }
