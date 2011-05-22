@@ -61,7 +61,8 @@ class UIApplication:
 		self.__bus.add_match(match_rule)
 
 		self.__panel = panel.Panel(self.__bus)
-                self.__context = inputcontext.IBusInputContext(self.__bus)
+                self.__context = inputcontext.InputContext(self.__bus)
+		self.__context.set_capabilities(int('101000',2))
 #		self.__bus.request_name(ibus.IBUS_SERVICE_PANEL, 0)
 		self.__notify = pynotify.Notification("IBus", \
 							_("Some input methods have been installed, removed or updated. " \
@@ -94,12 +95,14 @@ class UIApplication:
 			elif(inp==CTRL_SHIFT or inp==CTRL_RIGHT or inp=='>'):
 				im_n+=1
 				im_n%=len(self.__bus.list_active_engines())
+				self.__context.focus_in()
 				self.__context.set_engine(self.__bus.list_active_engines()[im_n])
 				print self.__context.get_engine().name
 			elif(inp==CTRL_LEFT or inp=='<'):
 				im_n-=1
 				im_n+=len(self.__bus.list_active_engines())
 				im_n%=len(self.__bus.list_active_engines())
+				self.__context.focus_in()
 				self.__context.set_engine(self.__bus.list_active_engines()[im_n])
 				print self.__context.get_engine().name
 			else:

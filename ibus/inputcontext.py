@@ -37,12 +37,12 @@ def escape_string(string):
 # Input Context
 ########################################################################
 
-class IBusInputContext(ibus.InputContext):
+class InputContext(ibus.InputContext):
 
 	def __init__(self, bus):
 		self.__bus = bus
-		self.__path = bus.create_input_context("IBusInputContext")
-		super(IBusInputContext, self).__init__(bus, self.__path, True)
+		self.__path = bus.create_input_context("InputContext")
+		super(InputContext, self).__init__(bus, self.__path, True)
 
 		self.id_no = 0
 		self.preediting = False
