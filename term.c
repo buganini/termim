@@ -45,7 +45,7 @@ void term_set_offset(struct term *term, int off_row, int off_col){
 
 	term->off_row=off_row;
 	term->off_col=off_col;
-	write(term->out, buf, sprintf(buf, "\033[%d;%dr", 1+term->off_row, 1+term->off_row+term->siz_row));
+	write(term->out, buf, sprintf(buf, "\033[%d;%dr", 1+term->off_row, term->off_row+term->siz_row));
 }
 
 void term_assoc_output(struct term *term, int out){
@@ -101,7 +101,9 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 			case '\x1b':
 				term->i=0;
 				term->escape=1;
-				write(term->out, ibuf+j, i-j);
+				r=write(term->out, ibuf+j, i-j);
+				//XXX Unicode
+				term->cur_col+=r;
 				break;
 			case '\n':
 				write(term->out, ibuf+j, i-j+1);
@@ -134,6 +136,8 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<8;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								term->cur_row=ia[0];
+								term->cur_col=ia[1];
 								ia[0]+=term->off_row;
 								ia[1]+=term->off_col;
 								r=write(term->out, buf, sprintf(buf, "\033[%d;%dH", ia[0], ia[1]));
@@ -175,9 +179,11 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	}
 	if(i-j>0){
 		r=write(term->out, ibuf+j, i-j);
+		//XXX Unicode
+		term->cur_col+=r;
 		POST_WRITE();
 	}
 
-	term_get_cursor(term);
+	//term_get_cursor(term);
 	return ret;
 }
