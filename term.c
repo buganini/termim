@@ -34,6 +34,8 @@ void term_destroy(struct term *term){
 void term_set_size(struct term *term, int siz_row, int siz_col){
 	term->siz_row=siz_row;
 	term->siz_col=siz_col;
+	term->scr_beg=1;
+	term->scr_end=siz_row;
 }
 
 void term_set_offset(struct term *term, int off_row, int off_col){
@@ -73,7 +75,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	char buf[128];
 	int ia[8]={0};
 
-	write(term->out, buf, sprintf(buf, "\033[%d;%dr", 1+term->off_row, term->siz_row+term->off_row));
+	write(term->out, buf, sprintf(buf, "\033[%d;%dr", term->scr_beg+term->off_row, term->scr_end+term->off_row));
 	term_put_cursor(term);
 	write(term->out, term->display, term->display_len);
 	for(j=i=0;i<len;++i){
