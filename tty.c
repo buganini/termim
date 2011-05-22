@@ -31,7 +31,6 @@ void tty_assoc_input(struct tty *tty, int in){
 	tty->in=in;
 
 	ioctl(in, GIO_KEYMAP, &kmap);
-	kmap.key[14].map[0] = BACKSPACE;
 	kmap.key[42].map[2] = CTRL_SHIFT;
 	kmap.key[54].map[2] = CTRL_SHIFT;
 	kmap.key[57].map[2] = CTRL_SPACE;
@@ -50,10 +49,13 @@ ret+=r;
 
 ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
-	char **argv;
 	char buf[128];
 
 	len=read(tty->in, ibuf, len);
+
+//	bypass processing:
+//	return write(tty->out, ibuf, len);
+
 	for(j=i=0;i<len;++i){
 		switch(ibuf[i]){
 			case '\x1b':
@@ -72,8 +74,7 @@ ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
 					case '[':
 						switch(ibuf[i]){
 							case 'A':
-								argv=parse_arg(&tty->buf[2]);
-								if(*argv==NULL){
+								if(tty->i==3){
 									write(tty->out, buf, sprintf(buf, "%c", UP));
 								}else{
 									r=write(tty->out, tty->buf, tty->i);
@@ -81,8 +82,7 @@ ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
 								}
 								break;
 							case 'B':
-								argv=parse_arg(&tty->buf[2]);
-								if(*argv==NULL){
+								if(tty->i==3){
 									write(tty->out, buf, sprintf(buf, "%c", DOWN));
 								}else{
 									r=write(tty->out, tty->buf, tty->i);
@@ -90,8 +90,7 @@ ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
 								}
 								break;
 							case 'C':
-								argv=parse_arg(&tty->buf[2]);
-								if(*argv==NULL){
+								if(tty->i==3){
 									write(tty->out, buf, sprintf(buf, "%c", RIGHT));
 								}else{
 									r=write(tty->out, tty->buf, tty->i);
@@ -99,8 +98,7 @@ ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
 								}
 								break;
 							case 'D':
-								argv=parse_arg(&tty->buf[2]);
-								if(*argv==NULL){
+								if(tty->i==3){
 									write(tty->out, buf, sprintf(buf, "%c", LEFT));
 								}else{
 									r=write(tty->out, tty->buf, tty->i);

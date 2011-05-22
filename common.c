@@ -9,6 +9,11 @@ char ** parse_arg(char *s){
 	char *p=str;
 	char *t;
 	char **argv=NULL;
+
+/*
+XXX
+doesn't handle empty input correcly
+*/
 	while((t=strsep(&p, ";")) != NULL){
 		if(argi>=size){
 			size+=8;

@@ -18,7 +18,8 @@ static int selKey_define[ 11 ] = {'1','2','3','4','5','6','7','8','9','0',0};
 int main(int argc, char *argv[]){
 	ChewingContext *ctx;
 	char *s;
-	unsigned char buf[BUFSIZ];
+	unsigned char ibuf[BUFSIZ];
+	char buf[128];
 	unsigned char c;
 	int n;
 	fd_set rfd;
@@ -45,10 +46,10 @@ int main(int argc, char *argv[]){
 		if (n < 0 && errno != EINTR)
 			break;
 		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)){
-			n=read(STDIN_FILENO, buf, BUFSIZ);
+			n=read(STDIN_FILENO, ibuf, BUFSIZ);
 			if(n<=0){
 			}else if(n==1){
-				c=*buf;
+				c=*ibuf;
 				if(c==CTRL_SPACE || c=='~'){
 					if(active)
 						active=0;
@@ -56,27 +57,64 @@ int main(int argc, char *argv[]){
 						active=1;
 					continue;
 				}
-				if(active)
+				if(active){
 					switch(c){
-						case ' ':
+						case SPACE:
+							printf("SPACE\n");
 							chewing_handle_Space(ctx);
 							break;
-						case '\r':
+						case ENTER:
+							printf("ENTER\n");
 							chewing_handle_Enter(ctx);
+							break;
+						case BACKSPACE:
+							printf("BACKSPACE\n");
+							chewing_handle_Backspace(ctx);
+							break;
+						case UP:
+							printf("UP\n");
+							chewing_handle_Up(ctx);
+							break;
+						case DOWN:
+							printf("DOWN\n");
+							chewing_handle_Down(ctx);
+							break;
+						case LEFT:
+							printf("LEFT\n");
+							chewing_handle_Left(ctx);
+							break;
+						case RIGHT:
+							printf("RIGHT\n");
+							chewing_handle_Right(ctx);
 							break;
 						default:
 							chewing_handle_Default(ctx, c);
 					}
-				else
-
-					write(out, buf, 1);
+				}else{
+					switch(c){
+						case UP:
+							write(out, buf, sprintf(buf, "\033[A"));
+							break;
+						case DOWN:
+							write(out, buf, sprintf(buf, "\033[B"));
+							break;
+						case LEFT:
+							write(out, buf, sprintf(buf, "\033[D"));
+							break;
+						case RIGHT:
+							write(out, buf, sprintf(buf, "\033[C"));
+							break;
+						default:
+							write(out, ibuf, 1);
+					}
+				}
 				if(chewing_commit_Check(ctx)){
 					s=chewing_commit_String(ctx);
 					write(out, s, strlen(s));
 					free(s);
 				}
 			}else{
-				write(out, buf, n);
+				write(out, ibuf, n);
 			}
 		}
 	}
