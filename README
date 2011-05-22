@@ -1,4 +1,6 @@
 TODO:
-	termim-ibus
-	sub terminal offset
-	keymap?
+	improve termim-chewing
+	improve sub terminal offset
+	improve keymap?
+	termim-ibus (current ibus require X, so ...)
+

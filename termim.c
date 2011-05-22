@@ -48,18 +48,7 @@
 #include <unistd.h>
 
 #include "term.h"
-
-enum KCode {
-	CTRL_SPACE = 200,
-	CTRL_SHIFT,
-	LEFT,
-	RIGHT,
-	SPACE,
-	UP,
-	DOWN,
-	CTRL_LEFT,
-	CTRL_RIGHT,
-};
+#include "keymap.h"
 
 struct term *term, *term2;
 static int master, slave;
@@ -346,7 +335,7 @@ static void
 dodock()
 {
 	char buf[16];
-	char *argv[]={"/usr/local/share/termim/ibus/main.py", buf,NULL};
+	char *argv[]={"termim-chewing", buf,NULL};
 	(void)close(tube[0]);
 	(void)close(master2);
 	login_tty(slave2);
