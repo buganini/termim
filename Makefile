@@ -6,7 +6,8 @@ all:
 
 install:
 	install -s -m 555 termim /usr/local/bin
-	install -m 555 termim-ibus /usr/local/libexec
+	mkdir -p /usr/local/share/termim/ibus
+	install -m 555 ibus/* /usr/local/share/termim/ibus
 
 clean:
 	rm termim

@@ -346,7 +346,7 @@ static void
 dodock()
 {
 	char buf[16];
-	char *argv[]={"/usr/local/libexec/termim-ibus", buf,NULL};
+	char *argv[]={"/usr/local/share/termim/ibus/main.py", buf,NULL};
 	(void)close(tube[0]);
 	(void)close(master2);
 	login_tty(slave2);
