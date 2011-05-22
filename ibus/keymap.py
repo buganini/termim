@@ -18,7 +18,7 @@ import os
 import re
 from ibus.modifier import *
 
-wrap={'\r':'cr', '\n':'nl'}
+wrap={'\r':'cr', '\n':'nl', '\x7f':'bs'}
 for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ 1234567890-=!@#$%^&*()_+;',./`\\:\"<>?~|":
 	wrap[c]="'%s'"%c
 
