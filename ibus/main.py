@@ -44,12 +44,15 @@ import inputcontext
 import gettext
 import panel
 import pynotify
+from ibus.keysyms import name_to_keycode
+import keymap
 
 from gettext import dgettext
 _  = lambda a : dgettext("ibus", a)
 
 class UIApplication:
 	def __init__ (self):
+		self.__keymap = keymap.keymap('us.iso')
 		pynotify.init("ibus")
 		self.__bus = ibus.Bus()
 		self.__bus.connect("disconnected", sys.exit)
@@ -108,7 +111,8 @@ class UIApplication:
 			else:
 				if im_active:
 					for c in inp:
-						self.__context.process_key_event(ord(c), 0, 0)
+						cod,mod=self.__keymap.keysym_to_keycode(c)
+						self.__context.process_key_event(name_to_keycode(c), cod, mod)
 				else:
 					os.write(out, inp)
 
