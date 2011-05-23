@@ -7,8 +7,6 @@ all:
 
 install:
 	install -s -m 555 termim /usr/local/bin
-#	mkdir -p /usr/local/share/termim/ibus
-#	install -m 555 ibus/* /usr/local/share/termim/ibus
 	install -m 555 termim-chewing /usr/local/bin
 
 clean:
