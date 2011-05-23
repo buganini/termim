@@ -16,7 +16,7 @@
 
 ChewingContext *ctx;
 int out;
-int active=0;
+int can_start=1;
 
 static int selKey_define[ 11 ] = {'1','2','3','4','5','6','7','8','9','0',0};
 
@@ -27,13 +27,21 @@ winch(int sig){
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &win);
 }
 
+int chewing_is_entering(ChewingContext *ctx){
+	int nul;
+	char *a=chewing_buffer_String(ctx);
+	char *b=chewing_zuin_String(ctx, &nul);
+	return *a!=0 || *b!=0;
+}
+
 void draw(){
 	char *s;
 	int i;
 	int nul;
 	int n=0;
-	char tbuf[64];
-	printf("\033[H");
+	int w;
+	char tbuf[512];
+	printf("\033[H\033[?25l");
 	char *ChiEng[2]={"英數", "注音"};
 	char *Shape[2]={"半形", "全形"};
 	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
@@ -41,29 +49,33 @@ void draw(){
 	n=printf("%s", s);
 	n=ustrwidth(s, n);
 	sprintf(tbuf,"%%-%ds", win.ws_col-13-n);
-	s=chewing_zuin_String( ctx, &nul);
+	s=chewing_zuin_String(ctx, &nul);
 	printf(tbuf, s);
-	if(n){
+	if(chewing_is_entering(ctx)){
 		chewing_cand_Enumerate(ctx);
+		n=1;
 		i=1;
 		while(chewing_cand_hasNext(ctx)){
+			if(i<can_start){
+				i+=1;
+				continue;
+			}
 			s=chewing_cand_String(ctx);
-			printf("%d.%s ", i, s);
-			++i;
-			if(i==10)
+			sprintf(tbuf, "%d.%s ", i, s);
+			w=ustrwidth(tbuf, INT_MAX);
+			if(n+w>=win.ws_col){
+				can_start=i;
 				break;
+			}
+			printf("%s", tbuf);
+			n+=w;
+			++i;
 		}
+		can_start=1;
 	}
-	printf("\r\n");
-
+	sprintf(tbuf,"%%%ds", win.ws_col-n);
+	printf(tbuf,"");
 	fflush(stdout);
-}
-
-int chewing_is_entering(ChewingContext *ctx){
-	int nul;
-	char *a=chewing_buffer_String(ctx);
-	char *b=chewing_zuin_String(ctx, &nul);
-	return *a!=0 || *b!=0;
 }
 
 int main(int argc, char *argv[]){
@@ -82,16 +94,16 @@ int main(int argc, char *argv[]){
 	signal(SIGWINCH, &winch);
 	winch(0);
 
-	chewing_Init( "/usr/local/share/chewing", "/tmp" );
+	chewing_Init( "/usr/local/share/chewing", "/tmp");
 	ctx = chewing_new();
 	chewing_set_ChiEngMode(ctx, 0);
-	chewing_set_KBType( ctx, chewing_KBStr2Num( "KB_DEFAULT" ) );
-	chewing_set_addPhraseDirection( ctx, 1 );
-	chewing_set_candPerPage( ctx, 9 );
-	chewing_set_escCleanAllBuf( ctx, 1 );
-	chewing_set_maxChiSymbolLen( ctx, 16 );
-	chewing_set_selKey( ctx, selKey_define, 10 );
-	chewing_set_spaceAsSelection( ctx, 1 );
+	chewing_set_KBType(ctx, chewing_KBStr2Num( "KB_DEFAULT"));
+	chewing_set_candPerPage(ctx, 1);
+	chewing_set_addPhraseDirection(ctx, 1);
+	chewing_set_escCleanAllBuf(ctx, 1);
+	chewing_set_maxChiSymbolLen(ctx, 16);
+	chewing_set_selKey(ctx, selKey_define, 10);
+	chewing_set_spaceAsSelection(ctx, 1);
 
 	printf("\033[H\033[44m\n\n");
 	draw();
