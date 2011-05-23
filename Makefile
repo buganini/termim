@@ -12,4 +12,5 @@ install:
 	install -m 555 termim-chewing /usr/local/bin
 
 clean:
-	rm termim
+	rm -f termim
+	rm -f termim-chewing
