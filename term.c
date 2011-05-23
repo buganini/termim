@@ -32,6 +32,8 @@ struct term * term_create(){
 	struct term *ret=malloc(sizeof(struct term));
 	ret->cur_row=1;
 	ret->cur_col=1;
+	ret->cur_visible=1;
+	ret->cur_blink=0;
 	ret->escape=0;
 	return ret;
 }
@@ -86,6 +88,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	char **argv;
 	char buf[128];
 	int ia[8]={0};
+	char hl[]={'l','h'};
 
 	write(term->out, buf, sprintf(buf, "\033[%d;%dr", term->scr_beg+term->off_row, term->scr_end+term->off_row));
 
@@ -102,6 +105,8 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 		write(term->out, buf, sprintf(buf, "\033[7m"));
 	if(term->invisible)
 		write(term->out, buf, sprintf(buf, "\033[8m"));
+	write(term->out, buf, sprintf(buf, "\033[?12%c", hl[term->cur_blink?1:0]));
+	write(term->out, buf, sprintf(buf, "\033[?25%c", hl[term->cur_visible?1:0]));
 	write(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
 
 	for(j=i=0;i<len;++i){
@@ -119,7 +124,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				term_put_cursor(term);
 
 				break;
-			case 0x08:
+			case 0x8:
 				write(term->out, ibuf+j, i-j+1);
 				j=i+1;
 
@@ -212,12 +217,55 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								free(argv[0]);
 								term->cur_col-=ia[0];
 								if(term->cur_col<1)
 									term->cur_col=1;
 								term->buf[term->i-1]='D';
 								r=write(term->out, term->buf, term->i);
 								POST_WRITE();
+								break;
+							case 'h':
+								switch(term->buf[2]){
+									case '?':
+										term->buf[term->i-1]=0;
+										argv=parse_arg(&term->buf[3]);
+										term->buf[term->i-1]='h';
+										if(argv[0]){
+											t=strtol(argv[0], NULL, 10);
+											switch(t){
+												case 12:
+													term->cur_blink=1;
+													break;
+												case 25:
+													term->cur_visible=1;
+													break;
+											}
+										}
+										break;
+								}
+								write(term->out, term->buf, term->i);
+								break;
+							case 'l':
+								switch(term->buf[2]){
+									case '?':
+										term->buf[term->i-1]=0;
+										argv=parse_arg(&term->buf[3]);
+										term->buf[term->i-1]='l';
+										if(argv[0]){
+											t=strtol(argv[0], NULL, 10);
+											switch(t){
+												case 12:
+													term->cur_visible=0;
+													break;
+												case 25:
+													term->cur_blink=0;
+													break;
+											}
+										}
+										break;
+								}
+								write(term->out, term->buf, term->i);
 								break;
 							case 'J':
 								term->buf[term->i-1]=0;

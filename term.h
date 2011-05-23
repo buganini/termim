@@ -11,9 +11,11 @@ struct term {
 	int siz_row;
 	int siz_col;
 
-	/* cursor location */
+	/* cursor attributes */
 	int cur_row;
 	int cur_col;
+	int cur_visible;
+	int cur_blink;
 
 	/* window offset */
 	int off_row;
