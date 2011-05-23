@@ -40,7 +40,7 @@ struct term * term_create(){
 
 void term_destroy(struct term *term){
 	char buf[128];
-	write(term->out, buf, sprintf(buf, "\033[r\033[m\033[2J\033[H"));
+	write(term->out, buf, sprintf(buf, "\033[r\033[m\033[2J\033[H\033[?12l\033[?25h"));
 	free(term);
 	
 }
@@ -163,10 +163,10 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<2;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								free_arg(argv);
 								term->cur_row=ia[0];
 								term->cur_col=ia[1];
 								term_put_cursor(term);
-								free(argv[0]);
 								break;
 							case 'A':
 								term->buf[term->i-1]=0;
@@ -175,6 +175,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								free_arg(argv);
 								term->cur_row-=ia[0];
 								if(term->cur_row<1)
 									term->cur_row=1;
@@ -189,6 +190,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								free_arg(argv);
 								term->cur_row+=ia[0];
 								if(term->cur_row>term->cur_row)
 									term->cur_row=term->cur_row;
@@ -203,6 +205,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								free_arg(argv);
 								term->cur_col+=ia[0];
 								if(term->cur_col>term->cur_col)
 									term->cur_col=term->cur_col;
@@ -217,7 +220,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
-								free(argv[0]);
+								free_arg(argv);
 								term->cur_col-=ia[0];
 								if(term->cur_col<1)
 									term->cur_col=1;
@@ -242,6 +245,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 													break;
 											}
 										}
+										free_arg(argv);
 										break;
 								}
 								write(term->out, term->buf, term->i);
@@ -263,6 +267,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 													break;
 											}
 										}
+										free_arg(argv);
 										break;
 								}
 								write(term->out, term->buf, term->i);
@@ -273,6 +278,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								t=0;
 								if(argv[0]!=NULL)
 									t=strtol(argv[0], NULL, 10);
+								free_arg(argv);
 								switch(t){
 									case 0:
 										for(t=term->cur_row;t<=term->siz_row;++t)
@@ -344,7 +350,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 											break;
 									}
 								}
-								free(argv[0]);
+								free_arg(argv);
 								term->buf[term->i-1]='m';
 								r=write(term->out, term->buf, term->i);
 								POST_WRITE();
@@ -361,7 +367,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								ia[1]+=term->off_row;
 								r=write(term->out, buf, sprintf(buf, "\033[%d;%dr", ia[0], ia[1]));
 								POST_WRITE();
-								free(argv[0]);
+								free_arg(argv);
 								break;
 							default:
 								r=write(term->out, term->buf, term->i);

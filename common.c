@@ -36,5 +36,13 @@ char ** parse_arg(char *s){
 		argi+=1;
 	}
 	argv[argi]=NULL;
+	if(argv[0]==NULL)
+		free(str);
 	return argv;
+}
+
+void free_arg(char **argv){
+	if(argv[0])
+		free(argv[0]);
+	free(argv);
 }
