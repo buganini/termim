@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "utf8.h"
 
@@ -404,6 +405,21 @@ int ustrwidth(const char *s, int l){
 		}
 	}
 	return ret;
+}
+
+int uprint(const char *s){
+	if(*s==0){
+		return 0;
+	}else if((*s & bb10000000) == bb00000000){
+		return printf("%c", s[0]);
+	}else if((*s & bb11100000) == bb11000000){
+		return printf("%c%c", s[0], s[1]);
+	}else if((*s & bb11110000) == bb11100000){
+		return printf("%c%c%c", s[0], s[1], s[2]);
+	}else if((*s & bb11111000) == bb11110000){
+		return printf("%c%c%c%c", s[0], s[1], s[2], s[3]);
+	}
+	return 0;
 }
 
 const char * unext(const char **s, int *l){

@@ -35,22 +35,48 @@ int chewing_is_entering(ChewingContext *ctx){
 }
 
 void draw(){
-	char *s;
+	const char *s;
+	const char *u;
 	int i;
 	int nul;
 	int n=0;
+	int off=0;
 	int w;
+	IntervalType itv;
 	char tbuf[512];
 	printf("\033[H\033[?25l");
 	char *ChiEng[2]={"英數", "注音"};
 	char *Shape[2]={"半形", "全形"};
+
+	//language bar
 	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
+
+	//edit buffer
 	s=chewing_buffer_String(ctx);
-	n=printf("%s", s);
-	n=ustrwidth(s, n);
-	sprintf(tbuf,"%%-%ds", win.ws_col-13-n);
+	off+=ustrwidth(s, INT_MAX);
+
+	n=chewing_cursor_Current(ctx);
+	nul=INT_MAX;
+	chewing_interval_Enumerate(ctx);
+	
+	while(chewing_interval_hasNext(ctx)){
+		chewing_interval_Get(ctx, &itv);
+
+		for(i=itv.from;i<itv.to;++i){
+			if(i==n)
+				printf("\033[1m");
+			u=unext(&s,&nul);
+			uprint(u);
+		}
+		printf("\033[0;44m ");
+		off+=1;
+	}
+	sprintf(tbuf,"%%-%ds", win.ws_col-13-off);
+	
 	s=chewing_zuin_String(ctx, &nul);
 	printf(tbuf, s);
+
+	//candidates
 	if(chewing_is_entering(ctx)){
 		chewing_cand_Enumerate(ctx);
 		n=1;
