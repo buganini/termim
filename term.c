@@ -141,7 +141,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								argv=parse_arg(&term->buf[2]);
 								ia[0]=1;
 								ia[1]=1;
-								for(argi=0;argv[argi]!=NULL && argi<8;++argi){
+								for(argi=0;argv[argi]!=NULL && argi<2;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
 								term->cur_row=ia[0];
@@ -152,10 +152,66 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								POST_WRITE();
 								free(argv[0]);
 								break;
+							case 'A':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								ia[0]=1;
+								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
+									ia[argi]=strtol(argv[argi], NULL, 10);
+								}
+								term->cur_row-=ia[0];
+								if(term->cur_row<1)
+									term->cur_row=1;
+								term->buf[term->i-1]='A';
+								r=write(term->out, term->buf, term->i);
+								POST_WRITE();
+								break;
+							case 'B':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								ia[0]=1;
+								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
+									ia[argi]=strtol(argv[argi], NULL, 10);
+								}
+								term->cur_row+=ia[0];
+								if(term->cur_row>term->cur_row)
+									term->cur_row=term->cur_row;
+								term->buf[term->i-1]='B';
+								r=write(term->out, term->buf, term->i);
+								POST_WRITE();
+								break;
+							case 'C':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								ia[0]=1;
+								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
+									ia[argi]=strtol(argv[argi], NULL, 10);
+								}
+								term->cur_col+=ia[0];
+								if(term->cur_col>term->cur_col)
+									term->cur_col=term->cur_col;
+								term->buf[term->i-1]='C';
+								r=write(term->out, term->buf, term->i);
+								POST_WRITE();
+								break;
+							case 'D':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								ia[0]=1;
+								for(argi=0;argv[argi]!=NULL && argi<1;++argi){
+									ia[argi]=strtol(argv[argi], NULL, 10);
+								}
+								term->cur_col-=ia[0];
+								if(term->cur_col<1)
+									term->cur_col=1;
+								term->buf[term->i-1]='D';
+								r=write(term->out, term->buf, term->i);
+								POST_WRITE();
+								break;
 							case 'm':
 								term->buf[term->i-1]=0;
 								argv=parse_arg(&term->buf[2]);
-								for(argi=0;argv[argi]!=NULL && argi<8;++argi){
+								for(argi=0;argv[argi]!=NULL;++argi){
 									t=strtol(argv[argi], NULL, 10);
 									switch(t){
 										case 0:
@@ -218,7 +274,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								ia[1]=term->siz_row;
 								term->buf[term->i-1]=0;
 								argv=parse_arg(&term->buf[2]);
-								for(argi=0;argv[argi]!=NULL && argi<8;++argi){
+								for(argi=0;argv[argi]!=NULL && argi<2;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
 								ia[0]+=term->off_row;
