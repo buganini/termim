@@ -36,11 +36,9 @@ int chewing_is_entering(ChewingContext *ctx){
 
 void draw(){
 	const char *s;
-	const char *u;
 	int i;
 	int nul;
 	int n=0;
-	int off=0;
 	int w;
 	IntervalType itv;
 	char tbuf[512];
@@ -52,10 +50,9 @@ void draw(){
 	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
 
 	//edit buffer
-	s=chewing_buffer_String(ctx);
-	off+=ustrwidth(s, INT_MAX);
-
 	n=chewing_cursor_Current(ctx);
+
+	s=chewing_buffer_String(ctx);
 	nul=INT_MAX;
 	chewing_interval_Enumerate(ctx);
 	
@@ -65,16 +62,15 @@ void draw(){
 		for(i=itv.from;i<itv.to;++i){
 			if(i==n)
 				printf("\033[1m");
-			u=unext(&s,&nul);
-			uprint(u);
+			uprint(unext(&s,&nul));
 		}
-		printf("\033[0;44m ");
-		off+=1;
+		printf("\033[0;44m\033[?25l ");
 	}
-	sprintf(tbuf,"%%-%ds", win.ws_col-13-off);
 	
 	s=chewing_zuin_String(ctx, &nul);
-	printf(tbuf, s);
+	printf("%s", s);
+
+	printf("\033[K\n");
 
 	//candidates
 	if(chewing_is_entering(ctx)){
