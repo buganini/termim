@@ -208,6 +208,27 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								r=write(term->out, term->buf, term->i);
 								POST_WRITE();
 								break;
+							case 'J':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								t=0;
+								if(argv[0]!=NULL)
+									t=strtol(argv[0], NULL, 10);
+								switch(t){
+									case 0:
+										for(t=term->cur_row;t<=term->siz_row;++t)
+											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+										break;
+									case 1:
+										for(t=term->cur_row;t>=1;--t)
+											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+										break;										
+									case 2:
+										for(t=1;t<=term->siz_row;++t)
+											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+										break;
+								}
+								break;
 							case 'm':
 								term->buf[term->i-1]=0;
 								argv=parse_arg(&term->buf[2]);
