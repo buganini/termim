@@ -23,9 +23,14 @@ struct term {
 	int scr_beg;
 	int scr_end;
 
-	/* backup of display attributes setting string */
-	char *display;
-	int display_len;
+	/* display attributes */
+	int bold;
+	int underline;
+	int blink;
+	int reverse;
+	int invisible;
+	int fg;
+	int bg;
 };
 
 struct term * term_create();

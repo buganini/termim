@@ -32,15 +32,12 @@ struct term * term_create(){
 	ret->cur_row=1;
 	ret->cur_col=1;
 	ret->escape=0;
-	ret->display=strdup("\033[m");
-	ret->display_len=3;
 	return ret;
 }
 
 void term_destroy(struct term *term){
 	char buf[128];
 	write(term->out, buf, sprintf(buf, "\033[r\033[m\033[2J\033[H"));
-	free(term->display);
 	free(term);
 	
 }
@@ -83,15 +80,29 @@ ret+=r;
 
 
 ssize_t term_write(struct term *term, const char *ibuf, size_t len){
-	int i, j, r=0, ret=0;
+	int i, j, t, r=0, ret=0;
 	int argi;
 	char **argv;
 	char buf[128];
 	int ia[8]={0};
 
 	write(term->out, buf, sprintf(buf, "\033[%d;%dr", term->scr_beg+term->off_row, term->scr_end+term->off_row));
+
 	term_put_cursor(term);
-	write(term->out, term->display, term->display_len);
+
+	write(term->out, buf, sprintf(buf, "\033[m"));
+	if(term->bold)
+		write(term->out, buf, sprintf(buf, "\033[1m"));
+	if(term->underline)
+		write(term->out, buf, sprintf(buf, "\033[4m"));
+	if(term->blink)
+		write(term->out, buf, sprintf(buf, "\033[5m"));
+	if(term->reverse)
+		write(term->out, buf, sprintf(buf, "\033[7m"));
+	if(term->invisible)
+		write(term->out, buf, sprintf(buf, "\033[8m"));
+	write(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
+	
 	for(j=i=0;i<len;++i){
 		switch(ibuf[i]){
 			case '\x1b':
@@ -142,9 +153,63 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								free(argv[0]);
 								break;
 							case 'm':
-								term->display=malloc(term->i);
-								memcpy(term->display, term->buf, term->i);
-								term->display_len=term->i;
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								for(argi=0;argv[argi]!=NULL && argi<8;++argi){
+									t=strtol(argv[argi], NULL, 10);
+									switch(t){
+										case 0:
+											term->bold=0;
+											term->underline=0;
+											term->blink=0;
+											term->reverse=0;
+											term->invisible=0;
+											term->fg=0;
+											term->bg=0;
+											break;
+										case 1:
+											term->bold=1;
+											break;
+										case 4:
+											term->underline=1;
+											break;
+										case 5:
+											term->blink=1;
+											break;
+										case 7:
+											term->reverse=1;
+											break;
+										case 8:
+											term->invisible=0;
+											break;
+										case 30:
+										case 31:
+										case 32:
+										case 33:
+										case 34:
+										case 35:
+										case 36:
+										case 37:
+										case 38:
+										case 39:
+											term->fg=t;
+											break;
+										case 40:
+										case 41:
+										case 42:
+										case 43:
+										case 44:
+										case 45:
+										case 46:
+										case 47:
+										case 48:
+										case 49:
+											term->bg=t;
+											break;
+									}
+								}
+								free(argv[0]);
+								term->buf[term->i-1]='m';
 								r=write(term->out, term->buf, term->i);
 								POST_WRITE();
 								break;

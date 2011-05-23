@@ -19,22 +19,22 @@
 #include "common.h"
 
 char ** parse_arg(char *s){
-	int size=0;
+	int size=4;
 	int argi=0;
 	char *str=strdup(s);
-	char *p=str;
 	char *t;
-	char **argv=NULL;
+	char **argv=malloc(sizeof(char *)*4);
 
-	t=NULL;
-	do{
+	while((t=strsep(&str, ";")) != NULL){
+		if(*t==0)
+			continue;
 		if(argi>=size){
-			size+=8;
+			size+=2;
 			argv=realloc(argv, sizeof(char *)*size);
 		}
 		argv[argi]=t;
 		argi+=1;
-	}while((t=strsep(&p, ";")) != NULL);
+	}
 	argv[argi]=NULL;
 	return argv;
 }
