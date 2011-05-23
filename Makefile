@@ -7,7 +7,7 @@ all:
 
 install:
 	install -s -m 555 termim /usr/local/bin
-	install -m 555 termim-chewing /usr/local/bin
+	install -s -m 555 termim-chewing /usr/local/bin
 
 clean:
 	rm -f termim
