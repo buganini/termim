@@ -24,8 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "term.h"
 #include "common.h"
+#include "term.h"
+#include "utf8.h"
 
 struct term * term_create(){
 	struct term *ret=malloc(sizeof(struct term));
@@ -109,21 +110,33 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				term->i=0;
 				term->escape=1;
 				r=write(term->out, ibuf+j, i-j);
-				//XXX Unicode
-				term->cur_col+=r;
+
+				term->cur_col+=term->cur_col+=ustrwidth(ibuf+j, i-j);
 				if(term->cur_col > term->siz_col){
 					term->cur_row += term->cur_col / term->siz_col;
 					term->cur_col /= term->siz_col;
 				}
+				term_put_cursor(term);
+
+				break;
+			case '\b':
+				/*XXX Unicode*/
+				term->cur_col-=1;
+				if(term->cur_col<1)
+					term->cur_col=1;
+				term_put_cursor(term);
+
 				break;
 			case '\n':
 				write(term->out, ibuf+j, i-j+1);
+
 				j=i+1;
 				term->cur_row+=1;
 				if(term->cur_row > term->siz_row)
 					term->cur_row=term->siz_row;
-				term->cur_col=1+term->off_col;
+				term->cur_col=1;
 				term_put_cursor(term);
+
 				break;
 		}
 		if(term->escape){
@@ -146,10 +159,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								}
 								term->cur_row=ia[0];
 								term->cur_col=ia[1];
-								ia[0]+=term->off_row;
-								ia[1]+=term->off_col;
-								r=write(term->out, buf, sprintf(buf, "\033[%d;%dH", ia[0], ia[1]));
-								POST_WRITE();
+								term_put_cursor(term);
 								free(argv[0]);
 								break;
 							case 'A':
@@ -320,14 +330,13 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	}
 	if(i-j>0){
 		r=write(term->out, ibuf+j, i-j);
-		//XXX Unicode
-		term->cur_col+=r;
+		/*XXX Unicode*/
+		term->cur_col+=ustrwidth(ibuf+j, i-j);
 		if(term->cur_col > term->siz_col){
 			term->cur_row += term->cur_col / term->siz_col;
 			term->cur_col /= term->siz_col;
 		}
 		POST_WRITE();
 	}
-
 	return ret;
 }

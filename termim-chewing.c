@@ -12,6 +12,7 @@
 
 #include <chewing/chewing.h>
 #include "keymap.h"
+#include "utf8.h"
 
 ChewingContext *ctx;
 int out;
@@ -37,7 +38,8 @@ void draw(){
 	char *Shape[2]={"半形", "全形"};
 	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
 	s=chewing_buffer_String(ctx);
-	n+=printf("%s", s);
+	n=printf("%s", s);
+	n=ustrwidth(s, n);
 	sprintf(tbuf,"%%-%ds", win.ws_col-13-n);
 	s=chewing_zuin_String( ctx, &nul);
 	printf(tbuf, s);
