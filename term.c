@@ -111,7 +111,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				term->escape=1;
 				r=write(term->out, ibuf+j, i-j);
 
-				term->cur_col+=term->cur_col+=ustrwidth(ibuf+j, i-j);
+				term->cur_col+=ustrwidth(ibuf+j, i-j);
 				if(term->cur_col > term->siz_col){
 					term->cur_row += term->cur_col / term->siz_col;
 					term->cur_col /= term->siz_col;
