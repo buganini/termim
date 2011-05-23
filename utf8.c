@@ -3,7 +3,7 @@
 #include "utf8.h"
 
 static const struct width_interval width_table[] = {
-	{0x0, 0xA0, HALF},
+	{0x20, 0xA0, HALF},
 	{0xA1, 0xA1, AMBI},
 	{0xA2, 0xA3, HALF},
 	{0xA4, 0xA4, AMBI},

@@ -51,7 +51,7 @@
 #include "term.h"
 #include "tty.h"
 
-struct tty *tty;
+struct tty *tty, *tty2;
 struct term *term, *term2;
 static int master, slave;
 static int master2, slave2;
@@ -125,10 +125,6 @@ main(int argc, char *argv[])
 			err(1, "openpty");
 	}
 
-	tty=tty_create();
-	tty_assoc_input(tty, STDIN_FILENO);
-	tty_assoc_output(tty, master2);
-
 	if (!qflg) {
 		tvec = time(NULL);
 	}
@@ -166,6 +162,13 @@ main(int argc, char *argv[])
 
 	fcntl(tube[0], F_SETFL, O_NONBLOCK);
 
+	tty=tty_create();
+	tty_assoc_input(tty, STDIN_FILENO);
+	tty_assoc_output(tty, master2);
+	tty2=tty_create();
+	tty_assoc_input(tty2, tube[0]);
+	tty_assoc_output(tty2, master);
+
 	signal(SIGINT, &sigforwarder);
 	signal(SIGQUIT, &sigforwarder);
 	signal(SIGPIPE, &sigforwarder);
@@ -178,6 +181,10 @@ main(int argc, char *argv[])
 		tvp = &tv;
 	else
 		tvp = NULL;
+
+#define RESET "\033[m\033[2J\033[H"
+	term_write(term, RESET, sizeof(RESET));
+	term_write(term2, RESET, sizeof(RESET));
 
 	start = time(0);
 	FD_ZERO(&rfd);
@@ -199,7 +206,7 @@ main(int argc, char *argv[])
 		if (n < 0 && errno != EINTR)
 			break;
 		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)) {
-			cc = tty_read_write(tty, ibuf, BUFSIZ);
+			cc = tty_readr_writev(tty, ibuf, sizeof (ibuf));
 			if (cc < 0)
 				break;
 		}
@@ -216,11 +223,9 @@ main(int argc, char *argv[])
 			term_write(term2, obuf, cc);
 		}
 		if (n > 0 && FD_ISSET(tube[0], &rfd)) {
-			cc = read(tube[0], obuf, sizeof (obuf));
-			if (cc <= 0 && errno!=EAGAIN)
+			cc = tty_readv_writer(tty2, ibuf, sizeof (ibuf));
+			if (cc < 0)
 				break;
-			if (cc > 0)
-				write(master, obuf, cc);
 		}
 		tvec = time(0);
 		if (tvec - start >= flushtime) {

@@ -129,31 +129,31 @@ int main(int argc, char *argv[]){
 						if(chewing_is_entering(ctx))
 							chewing_handle_Backspace(ctx);
 						else
-							write(out, buf, sprintf(buf, "\b"));
+							write(out, buf, sprintf(buf, "%c", BACKSPACE));
 						break;
 					case UP:
 						if(chewing_is_entering(ctx))
 							chewing_handle_Up(ctx);
 						else
-							write(out, buf, sprintf(buf, "\033[A"));
+							write(out, buf, sprintf(buf, "%c", UP));
 						break;
 					case DOWN:
 						if(chewing_is_entering(ctx))
 							chewing_handle_Down(ctx);
 						else
-							write(out, buf, sprintf(buf, "\033[B"));
+							write(out, buf, sprintf(buf, "%c", DOWN));
 						break;
 					case LEFT:
 						if(chewing_is_entering(ctx))
 							chewing_handle_Left(ctx);
 						else
-							write(out, buf, sprintf(buf, "\033[D"));
+							write(out, buf, sprintf(buf, "%c", LEFT));
 						break;
 					case RIGHT:
 						if(chewing_is_entering(ctx))
 							chewing_handle_Right(ctx);
 						else
-							write(out, buf, sprintf(buf, "\033[C"));
+							write(out, buf, sprintf(buf, "%c", RIGHT));
 						break;
 					default:
 						if((c & 0xFF00)==0 && isprint(c))

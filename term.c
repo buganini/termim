@@ -103,7 +103,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	if(term->invisible)
 		write(term->out, buf, sprintf(buf, "\033[8m"));
 	write(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
-	
+
 	for(j=i=0;i<len;++i){
 		switch(ibuf[i]){
 			case '\x1b':
@@ -119,18 +119,19 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				term_put_cursor(term);
 
 				break;
-			case '\b':
-				/*XXX Unicode*/
+			case 0x08:
+				write(term->out, ibuf+j, i-j+1);
+				j=i+1;
+
 				term->cur_col-=1;
 				if(term->cur_col<1)
 					term->cur_col=1;
 				term_put_cursor(term);
-
 				break;
 			case '\n':
-				write(term->out, ibuf+j, i-j+1);
-
+				write(term->out, ibuf+j, i-j+1 /* include \n */);
 				j=i+1;
+
 				term->cur_row+=1;
 				if(term->cur_row > term->siz_row)
 					term->cur_row=term->siz_row;
@@ -330,7 +331,6 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	}
 	if(i-j>0){
 		r=write(term->out, ibuf+j, i-j);
-		/*XXX Unicode*/
 		term->cur_col+=ustrwidth(ibuf+j, i-j);
 		if(term->cur_col > term->siz_col){
 			term->cur_row += term->cur_col / term->siz_col;

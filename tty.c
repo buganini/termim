@@ -1,8 +1,3 @@
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 /*
  * Copyright (c) 2011 Kuan-Chung Chiu <buganini@gmail.com>
  *
@@ -22,6 +17,13 @@
  * and write to another tty
  *
  */
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -63,7 +65,54 @@ if(r<0){ \
 } \
 ret+=r;
 
-ssize_t tty_read_write(struct tty *tty, char *ibuf, size_t len){
+ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
+	int r=0, ret=0;
+	char buf[128];
+
+	len=read(tty->in, ibuf, len);
+	if(len <= 0 && errno!=EAGAIN)
+		return -1;
+	if(len==0)
+		return 0;
+
+//	bypass processing:
+//	return write(tty->out, ibuf, len);
+FILE *fp=fopen("lala.txt","a");
+	for(r=0;r<len;++r)
+fprintf(fp, "%02X ",ibuf[r]);
+fprintf(fp,"\n");
+fflush(fp);
+	if(len==1){
+		switch((unsigned char)*ibuf){
+			case UP:
+				r=write(tty->out, buf, sprintf(buf, "\033[A"));
+				POST_WRITE();
+				break;
+			case DOWN:
+				r=write(tty->out, buf, sprintf(buf, "\033[B"));
+				POST_WRITE();
+				break;
+			case LEFT:
+				r=write(tty->out, buf, sprintf(buf, "\033[D"));
+				POST_WRITE();
+				break;
+			case RIGHT:
+				r=write(tty->out, buf, sprintf(buf, "\033[C"));
+				POST_WRITE();
+				break;
+			default:
+				r=write(tty->out, ibuf, 1);
+				POST_WRITE();
+				break;
+		}
+	}else{
+		r=write(tty->out, ibuf, len);
+		POST_WRITE();
+	}
+	return ret;
+}
+
+ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
 	char buf[128];
 
