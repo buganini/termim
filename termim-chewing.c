@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <signal.h>
@@ -32,20 +33,14 @@ void draw(){
 	int n=0;
 	char tbuf[64];
 	printf("\033[H");
-	if(active){
-		printf("[注音] ");
-	}else{
-		printf("[英數] ");
-	}
+	char *ChiEng[2]={"英數", "注音"};
+	char *Shape[2]={"半形", "全形"};
+	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
 	s=chewing_buffer_String(ctx);
 	n+=printf("%s", s);
-
-	sprintf(tbuf,"%%-%ds", win.ws_col-7-n);
+	sprintf(tbuf,"%%-%ds", win.ws_col-13-n);
 	s=chewing_zuin_String( ctx, &nul);
 	printf(tbuf, s);
-
-	printf("\r\n");
-
 	if(n){
 		chewing_cand_Enumerate(ctx);
 		i=1;
@@ -57,7 +52,16 @@ void draw(){
 				break;
 		}
 	}
+	printf("\r\n");
+
 	fflush(stdout);
+}
+
+int chewing_is_entering(ChewingContext *ctx){
+	int nul;
+	char *a=chewing_buffer_String(ctx);
+	char *b=chewing_zuin_String(ctx, &nul);
+	return *a!=0 || *b!=0;
 }
 
 int main(int argc, char *argv[]){
@@ -78,10 +82,12 @@ int main(int argc, char *argv[]){
 
 	chewing_Init( "/usr/local/share/chewing", "/tmp" );
 	ctx = chewing_new();
+	chewing_set_ChiEngMode(ctx, 0);
 	chewing_set_KBType( ctx, chewing_KBStr2Num( "KB_DEFAULT" ) );
-	chewing_set_candPerPage( ctx, 9 );
-	chewing_set_maxChiSymbolLen( ctx, 16 );
 	chewing_set_addPhraseDirection( ctx, 1 );
+	chewing_set_candPerPage( ctx, 9 );
+	chewing_set_escCleanAllBuf( ctx, 1 );
+	chewing_set_maxChiSymbolLen( ctx, 16 );
 	chewing_set_selKey( ctx, selKey_define, 10 );
 	chewing_set_spaceAsSelection( ctx, 1 );
 
@@ -99,61 +105,65 @@ int main(int argc, char *argv[]){
 			if(n<=0){
 			}else if(n==1){
 				c=*ibuf;
-				if(c==CTRL_SPACE || c=='~'){
-					if(active)
-						active=0;
-					else
-						active=1;
-					continue;
-				}
-				if(active){
-					switch(c){
-						case SPACE:
-							chewing_handle_Space(ctx);
-							break;
-						case ENTER:
+				switch(c){
+					case CTRL_SPACE:
+					case '`':
+						chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
+						break;
+					case SHIFT_SPACE:
+					case '~':
+						chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+						break;
+					case SPACE:
+						chewing_handle_Space(ctx);
+						break;
+					case ENTER:
+						if(chewing_is_entering(ctx))
 							chewing_handle_Enter(ctx);
-							break;
-						case BACKSPACE:
+						else
+							write(out, buf, sprintf(buf, "\r"));
+						break;
+					case BACKSPACE:
+						if(chewing_is_entering(ctx))
 							chewing_handle_Backspace(ctx);
-							break;
-						case UP:
+						else
+							write(out, buf, sprintf(buf, "\b"));
+						break;
+					case UP:
+						if(chewing_is_entering(ctx))
 							chewing_handle_Up(ctx);
-							break;
-						case DOWN:
-							chewing_handle_Down(ctx);
-							break;
-						case LEFT:
-							chewing_handle_Left(ctx);
-							break;
-						case RIGHT:
-							chewing_handle_Right(ctx);
-							break;
-						default:
-							chewing_handle_Default(ctx, c);
-					}
-				}else{
-					switch(c){
-						case UP:
+						else
 							write(out, buf, sprintf(buf, "\033[A"));
-							break;
-						case DOWN:
+						break;
+					case DOWN:
+						if(chewing_is_entering(ctx))
+							chewing_handle_Down(ctx);
+						else
 							write(out, buf, sprintf(buf, "\033[B"));
-							break;
-						case LEFT:
+						break;
+					case LEFT:
+						if(chewing_is_entering(ctx))
+							chewing_handle_Left(ctx);
+						else
 							write(out, buf, sprintf(buf, "\033[D"));
-							break;
-						case RIGHT:
+						break;
+					case RIGHT:
+						if(chewing_is_entering(ctx))
+							chewing_handle_Right(ctx);
+						else
 							write(out, buf, sprintf(buf, "\033[C"));
-							break;
-						default:
+						break;
+					default:
+						if((c & 0xFF00)==0 && isprint(c))
+							chewing_handle_Default(ctx, c);
+						else
 							write(out, ibuf, 1);
-					}
 				}
 				if(chewing_commit_Check(ctx)){
 					s=chewing_commit_String(ctx);
 					write(out, s, strlen(s));
 					free(s);
+					chewing_handle_Esc(ctx);
 				}
 			}else{
 				write(out, ibuf, n);

@@ -49,6 +49,7 @@ void tty_assoc_input(struct tty *tty, int in){
 	kmap.key[42].map[2] = CTRL_SHIFT;
 	kmap.key[54].map[2] = CTRL_SHIFT;
 	kmap.key[57].map[2] = CTRL_SPACE;
+	kmap.key[57].map[1] = SHIFT_SPACE;
 	ioctl(in, PIO_KEYMAP, &kmap);
 }
 

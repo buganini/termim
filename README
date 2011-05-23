@@ -2,8 +2,9 @@ Try this in sysutils/jfbterm or terminal
 
 Currently there is only chewing engine.
 
-Use Ctrl+Space or '~' to toggle IME.
-(Ctrl+Space is impossible to work in a virtual terminal under X11)
+Use Ctrl+Space or '`' to toggle Eng/Chi Mode.
+Use Shift+Space or '~' to toggle Half/Full Mode.
+(Ctrl/Shift+Space is impossible to work in a virtual terminal under X11)
 
 TODO:
 	improve termim-chewing

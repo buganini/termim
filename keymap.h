@@ -3,6 +3,7 @@ enum KCode {
 	ENTER = 0x0D,
 	BACKSPACE = 0x7f,
 	CTRL_SPACE = 200,
+	SHIFT_SPACE,
 	CTRL_SHIFT,
 	UP,
 	DOWN,
