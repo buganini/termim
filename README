@@ -1,5 +1,13 @@
 Try this in sysutils/jfbterm or terminal
 
+Architecture:
+	jfbterm/x11-terminal
+		termim
+			screen/tmux
+				UTF-8 program
+				bug5
+					Non-UTF-8 program
+
 Currently there is only chewing engine.
 
 Use Ctrl+Space or '`' to toggle Eng/Chi Mode.
