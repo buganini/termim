@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
 	signal(SIGWINCH, &winch);
 	winch(0);
 
-	chewing_Init( "/usr/local/share/chewing", "/tmp");
+	chewing_Init( PREFIX "/share/chewing", "/tmp");
 	ctx = chewing_new();
 	chewing_set_ChiEngMode(ctx, 0);
 	chewing_set_KBType(ctx, chewing_KBStr2Num( "KB_DEFAULT"));
