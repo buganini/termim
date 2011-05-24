@@ -51,6 +51,8 @@
 #include "term.h"
 #include "tty.h"
 
+extern int ambi_width;
+
 struct tty *tty, *tty2;
 struct term *term, *term2;
 static int master, slave;
@@ -87,8 +89,14 @@ main(int argc, char *argv[])
 	int flushtime = 30;
 	int nfds=0;
 
-	while ((ch = getopt(argc, argv, "")) != -1)
+	while ((ch = getopt(argc, argv, "nw")) != -1)
 		switch(ch) {
+		case 'n':
+			ambi_width=1;
+			break;
+		case 'w':
+			ambi_width=2;
+			break;
 		case '?':
 		default:
 			usage();
@@ -269,14 +277,9 @@ static void
 usage(void)
 {
 	(void)fprintf(stderr,
-	    "usage: bug5 [-gptu] [-i conversion] [-o conversion] [-l locale] [command ...]\n"
-	    "\t -g\tGBK based profile\n"
-	    "\t -p\tpad ambiguous-width characters\n"
-	    "\t -t\tconversion for traditional/simplified chinese\n"
-	    "\t -u\tallow using UAO (no operation with -g)\n"
-	    "\t -i\tspecify input conversion\n"
-	    "\t -o\tspecify output conversion\n"
-	    "\t -l\tset LC_CTYPE before executing program\n"
+	    "usage: termim [-nw]\n"
+	    "\t -n\tYour terminal display ambiguous as narrow (default)\n"
+	    "\t -w\tYour terminal display ambiguous as wide\n"
 	);
 	exit(1);
 }

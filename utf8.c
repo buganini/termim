@@ -378,6 +378,7 @@ int ustrlen(const char *s, int l){
 	return r;
 }
 
+int ambi_width=1;
 int ustrwidth(const char *s, int l){
 	int max, min, mid;
 	int ret=0;
@@ -397,7 +398,7 @@ int ustrwidth(const char *s, int l){
 					max = mid - 1;
 				else{
 					if(width_table[mid].width<0)
-						ret+=2;
+						ret+=ambi_width;
 					else
 						ret+=width_table[mid].width;
 					break;
