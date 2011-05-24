@@ -14,7 +14,7 @@ Use Ctrl+Space or '`' to toggle Eng/Chi Mode.
 Use Shift+Space or '~' to toggle Half/Full Mode.
 (Ctrl/Shift+Space is impossible to work in a virtual terminal under X11)
 
-About Engine:
+About IM Engine:
 	Take fd number specified at argv[1],
 	read key from stdin, process, then write to that fd,
 	display UI at stdout, with window size Row:2 Col:Inherit
