@@ -70,16 +70,18 @@ ssize_t term_read(struct term *term, void *buf, size_t len){
 	return read(term->out, buf, len);
 }
 
-void term_put_cursor(struct term *term){
+int term_put_cursor(struct term *term){
 	char buf[128];
-	write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row+term->off_row, term->cur_col+term->off_col));
+	return write(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row+term->off_row, term->cur_col+term->off_col));
 }
 
-#define POST_WRITE() \
+#define WRITE(X,Y,Z) do{ \
+r=write((X),(Y),(Z)); \
 if(r<0){ \
 	return r; \
 } \
-ret+=r;
+ret+=r; \
+}while(0);
 
 
 ssize_t term_write(struct term *term, const char *ibuf, size_t len){
@@ -90,31 +92,31 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	int ia[8]={0};
 	char hl[]={'l','h'};
 
-	write(term->out, buf, sprintf(buf, "\033[%d;%dr", term->scr_beg+term->off_row, term->scr_end+term->off_row));
+	WRITE(term->out, buf, sprintf(buf, "\033[%d;%dr", term->scr_beg+term->off_row, term->scr_end+term->off_row));
 
 	term_put_cursor(term);
 
-	write(term->out, buf, sprintf(buf, "\033[m"));
+	WRITE(term->out, buf, sprintf(buf, "\033[m"));
 	if(term->bold)
-		write(term->out, buf, sprintf(buf, "\033[1m"));
+		WRITE(term->out, buf, sprintf(buf, "\033[1m"));
 	if(term->underline)
-		write(term->out, buf, sprintf(buf, "\033[4m"));
+		WRITE(term->out, buf, sprintf(buf, "\033[4m"));
 	if(term->blink)
-		write(term->out, buf, sprintf(buf, "\033[5m"));
+		WRITE(term->out, buf, sprintf(buf, "\033[5m"));
 	if(term->reverse)
-		write(term->out, buf, sprintf(buf, "\033[7m"));
+		WRITE(term->out, buf, sprintf(buf, "\033[7m"));
 	if(term->invisible)
-		write(term->out, buf, sprintf(buf, "\033[8m"));
-	write(term->out, buf, sprintf(buf, "\033[?12%c", hl[term->cur_blink?1:0]));
-	write(term->out, buf, sprintf(buf, "\033[?25%c", hl[term->cur_visible?1:0]));
-	write(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
+		WRITE(term->out, buf, sprintf(buf, "\033[8m"));
+	WRITE(term->out, buf, sprintf(buf, "\033[?12%c", hl[term->cur_blink?1:0]));
+	WRITE(term->out, buf, sprintf(buf, "\033[?25%c", hl[term->cur_visible?1:0]));
+	WRITE(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
 
 	for(j=i=0;i<len;++i){
 		switch(ibuf[i]){
 			case '\x1b':
 				term->i=0;
 				term->escape=1;
-				r=write(term->out, ibuf+j, i-j);
+				WRITE(term->out, ibuf+j, i-j);
 
 				term->cur_col+=ustrwidth(ibuf+j, i-j);
 				if(term->cur_col > term->siz_col){
@@ -125,7 +127,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 
 				break;
 			case 0x8:
-				write(term->out, ibuf+j, i-j+1);
+				WRITE(term->out, ibuf+j, i-j+1);
 				j=i+1;
 
 				term->cur_col-=1;
@@ -134,7 +136,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				term_put_cursor(term);
 				break;
 			case '\n':
-				write(term->out, ibuf+j, i-j+1 /* include \n */);
+				WRITE(term->out, ibuf+j, i-j+1 /* include \n */);
 				j=i+1;
 
 				term->cur_row+=1;
@@ -180,8 +182,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								if(term->cur_row<1)
 									term->cur_row=1;
 								term->buf[term->i-1]='A';
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'B':
 								term->buf[term->i-1]=0;
@@ -195,8 +196,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								if(term->cur_row>term->cur_row)
 									term->cur_row=term->cur_row;
 								term->buf[term->i-1]='B';
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'C':
 								term->buf[term->i-1]=0;
@@ -210,8 +210,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								if(term->cur_col>term->cur_col)
 									term->cur_col=term->cur_col;
 								term->buf[term->i-1]='C';
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'D':
 								term->buf[term->i-1]=0;
@@ -225,8 +224,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								if(term->cur_col<1)
 									term->cur_col=1;
 								term->buf[term->i-1]='D';
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'h':
 								switch(term->buf[2]){
@@ -248,7 +246,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 										free_arg(argv);
 										break;
 								}
-								write(term->out, term->buf, term->i);
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'l':
 								switch(term->buf[2]){
@@ -270,7 +268,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 										free_arg(argv);
 										break;
 								}
-								write(term->out, term->buf, term->i);
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'J':
 								term->buf[term->i-1]=0;
@@ -282,15 +280,15 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								switch(t){
 									case 0:
 										for(t=term->cur_row;t<=term->siz_row;++t)
-											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+											WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
 										break;
 									case 1:
 										for(t=term->cur_row;t>=1;--t)
-											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+											WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
 										break;										
 									case 2:
 										for(t=1;t<=term->siz_row;++t)
-											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
+											WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
 										break;
 								}
 								term_put_cursor(term);
@@ -362,8 +360,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								}
 								free_arg(argv);
 								term->buf[term->i-1]='m';
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 							case 'r':
 								ia[0]=1;
@@ -375,32 +372,28 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								}
 								ia[0]+=term->off_row;
 								ia[1]+=term->off_row;
-								r=write(term->out, buf, sprintf(buf, "\033[%d;%dr", ia[0], ia[1]));
-								POST_WRITE();
+								WRITE(term->out, buf, sprintf(buf, "\033[%d;%dr", ia[0], ia[1]));
 								free_arg(argv);
 								break;
 							default:
-								r=write(term->out, term->buf, term->i);
-								POST_WRITE();
+								WRITE(term->out, term->buf, term->i);
 								break;
 						}
 						break;
 					default:
-						r=write(term->out, term->buf, term->i);
-						POST_WRITE();
+						WRITE(term->out, term->buf, term->i);
 						break;
 				}
 			}
 		}
 	}
 	if(term->escape==0 && i-j>0){
-		r=write(term->out, ibuf+j, i-j);
+		WRITE(term->out, ibuf+j, i-j);
 		term->cur_col+=ustrwidth(ibuf+j, i-j);
 		if(term->cur_col > term->siz_col){
 			term->cur_row += term->cur_col / term->siz_col;
 			term->cur_col /= term->siz_col;
 		}
-		POST_WRITE();
 	}
 	return ret;
 }

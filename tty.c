@@ -59,11 +59,13 @@ void tty_assoc_output(struct tty *tty, int out){
 	tty->out=out;
 }
 
-#define POST_WRITE() \
+#define WRITE(X,Y,Z) do{ \
+r=write((X),(Y),(Z)); \
 if(r<0){ \
 	return r; \
 } \
-ret+=r;
+ret+=r; \
+}while(0);
 
 ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
 	int r=0, ret=0;
@@ -85,29 +87,23 @@ fflush(fp);
 	if(len==1){
 		switch((unsigned char)*ibuf){
 			case UP:
-				r=write(tty->out, buf, sprintf(buf, "\033[A"));
-				POST_WRITE();
+				WRITE(tty->out, buf, sprintf(buf, "\033[A"));
 				break;
 			case DOWN:
-				r=write(tty->out, buf, sprintf(buf, "\033[B"));
-				POST_WRITE();
+				WRITE(tty->out, buf, sprintf(buf, "\033[B"));
 				break;
 			case LEFT:
-				r=write(tty->out, buf, sprintf(buf, "\033[D"));
-				POST_WRITE();
+				WRITE(tty->out, buf, sprintf(buf, "\033[D"));
 				break;
 			case RIGHT:
-				r=write(tty->out, buf, sprintf(buf, "\033[C"));
-				POST_WRITE();
+				WRITE(tty->out, buf, sprintf(buf, "\033[C"));
 				break;
 			default:
-				r=write(tty->out, ibuf, 1);
-				POST_WRITE();
+				WRITE(tty->out, ibuf, 1);
 				break;
 		}
 	}else{
-		r=write(tty->out, ibuf, len);
-		POST_WRITE();
+		WRITE(tty->out, ibuf, len);
 	}
 	return ret;
 }
@@ -126,7 +122,7 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 			case '\x1b':
 				tty->i=0;
 				tty->escape=1;
-				write(tty->out, ibuf+j, i-j);
+				WRITE(tty->out, ibuf+j, i-j);
 				break;				
 		}
 		if(tty->escape){
@@ -140,53 +136,46 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 						switch(ibuf[i]){
 							case 'A':
 								if(tty->i==3){
-									write(tty->out, buf, sprintf(buf, "%c", UP));
+									WRITE(tty->out, buf, sprintf(buf, "%c", UP));
 								}else{
-									r=write(tty->out, tty->buf, tty->i);
-									POST_WRITE();
+									WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'B':
 								if(tty->i==3){
-									write(tty->out, buf, sprintf(buf, "%c", DOWN));
+									WRITE(tty->out, buf, sprintf(buf, "%c", DOWN));
 								}else{
-									r=write(tty->out, tty->buf, tty->i);
-									POST_WRITE();
+									WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'C':
 								if(tty->i==3){
-									write(tty->out, buf, sprintf(buf, "%c", RIGHT));
+									WRITE(tty->out, buf, sprintf(buf, "%c", RIGHT));
 								}else{
-									r=write(tty->out, tty->buf, tty->i);
-									POST_WRITE();
+									WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'D':
 								if(tty->i==3){
-									write(tty->out, buf, sprintf(buf, "%c", LEFT));
+									WRITE(tty->out, buf, sprintf(buf, "%c", LEFT));
 								}else{
-									r=write(tty->out, tty->buf, tty->i);
-									POST_WRITE();
+									WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							default:
-								r=write(tty->out, tty->buf, tty->i);
-								POST_WRITE();
+								WRITE(tty->out, tty->buf, tty->i);
 								break;
 						}
 						break;
 					default:
-						r=write(tty->out, tty->buf, tty->i);
-						POST_WRITE();
+						WRITE(tty->out, tty->buf, tty->i);
 						break;
 				}
 			}
 		}
 	}
 	if(tty->escape==0 && i-j>0){
-		r=write(tty->out, ibuf+j, i-j);
-		POST_WRITE();
+		WRITE(tty->out, ibuf+j, i-j);
 	}
 
 	return ret;
