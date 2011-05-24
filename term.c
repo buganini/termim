@@ -393,7 +393,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 			}
 		}
 	}
-	if(i-j>0){
+	if(term->escape==0 && i-j>0){
 		r=write(term->out, ibuf+j, i-j);
 		term->cur_col+=ustrwidth(ibuf+j, i-j);
 		if(term->cur_col > term->siz_col){
