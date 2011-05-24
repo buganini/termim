@@ -16,7 +16,6 @@
 
 ChewingContext *ctx;
 int out;
-int can_start=1;
 
 static int selKey_define[ 11 ] = {'1','2','3','4','5','6','7','8','9','0',0};
 
@@ -84,27 +83,24 @@ void draw(){
 	if(chewing_is_entering(ctx)){
 		chewing_cand_Enumerate(ctx);
 		n=1;
-		i=1;
+		i=0;
 		while(chewing_cand_hasNext(ctx)){
-			if(i<can_start){
-				i+=1;
-				continue;
-			}
 			s=chewing_cand_String(ctx);
-			sprintf(tbuf, "%d.%s ", i, s);
+			sprintf(tbuf, "%c.%s ", selKey_define[i], s);
 			w=ustrwidth(tbuf, INT_MAX);
 			if(n+w>=win.ws_col){
-				can_start=i;
-				break;
+				n=1;
+				printf("\n");
 			}
 			printf("%s", tbuf);
 			n+=w;
+			if(i==10){
+				break;
+			}
 			++i;
 		}
-		can_start=1;
 	}
-	sprintf(tbuf,"%%%ds", win.ws_col-n);
-	printf(tbuf,"");
+	printf("\033[K");
 	fflush(stdout);
 }
 
@@ -128,7 +124,7 @@ int main(int argc, char *argv[]){
 	ctx = chewing_new();
 	chewing_set_ChiEngMode(ctx, 0);
 	chewing_set_KBType(ctx, chewing_KBStr2Num( "KB_DEFAULT"));
-	chewing_set_candPerPage(ctx, 1);
+	chewing_set_candPerPage(ctx, 10);
 	chewing_set_addPhraseDirection(ctx, 1);
 	chewing_set_escCleanAllBuf(ctx, 1);
 	chewing_set_maxChiSymbolLen(ctx, 64);
