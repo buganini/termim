@@ -72,9 +72,11 @@ void draw(){
 		printf("\033[0;44m\033[?25l");
 		j+=1;
 	}
-	
+
+	printf("\033[4m");
 	s=chewing_zuin_String(ctx, &nul);
 	printf("%s", s);
+	printf("\033[0;44m\033[?25l");
 
 	printf("\033[K\n");
 
