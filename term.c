@@ -150,6 +150,12 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 		if(term->escape){
 			term->buf[term->i]=ibuf[i];
 			term->i+=1;
+			if(term->i==2 && term->buf[1]!='['){
+				WRITE(term->out, term->buf, 2);
+				term->escape=0;
+				j=i+1;
+				continue;
+			}
 			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z')){
 				term->escape=0;
 				j=i+1;

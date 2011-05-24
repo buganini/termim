@@ -124,6 +124,12 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 		if(tty->escape){
 			tty->buf[tty->i]=ibuf[i];
 			tty->i+=1;
+			if(tty->i==2 && tty->buf[1]!='['){
+				WRITE(tty->out, tty->buf, 2);
+				tty->escape=0;
+				j=i+1;
+				continue;
+			}
 			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z')){
 				tty->escape=0;
 				j=i+1;
