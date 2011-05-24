@@ -408,7 +408,7 @@ int ustrwidth(const char *s, int l){
 	return ret;
 }
 
-int uprint(const char *s){
+int uputchar(const char *s){
 	if(s==NULL) return 0;
 	if(*s==0){
 		return 0;

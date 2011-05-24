@@ -22,7 +22,7 @@ struct width_interval {
 	int width;
 };
 
-int uprint(const char *s);
+int uputchar(const char *s);
 int ustrlen(const char *s, int l);
 int ustrwidth(const char *s, int l);
 const char * unext(const char **s, int *l);
