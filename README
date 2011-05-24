@@ -19,6 +19,9 @@ About Engine:
 	read key from stdin, process, then write to that fd,
 	display UI at stdout, with window size Row:2 Col:Inherit
 
+Related Projects:
+	http://code.google.com/p/ucimf/
+
 TODO:
 	fix rest bug in term.c
 	improve termim-chewing
