@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	int flushtime = 30;
 	int nfds=0;
 
-	while ((ch = getopt(argc, argv, "nw")) != -1)
+	while ((ch = getopt(argc, argv, "hnw")) != -1)
 		switch(ch) {
 		case 'n':
 			ambi_width=1;
@@ -97,6 +97,7 @@ main(int argc, char *argv[])
 		case 'w':
 			ambi_width=2;
 			break;
+		case 'h':
 		case '?':
 		default:
 			usage();
