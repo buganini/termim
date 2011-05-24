@@ -33,10 +33,18 @@ int chewing_is_entering(ChewingContext *ctx){
 	return *a!=0 || *b!=0;
 }
 
+void setColor(i){
+	if(i&1)
+		printf("\033[2m");
+	else
+		printf("\033[0;44m\033[?25l");
+}
+
 void draw(){
 	const char *s;
 	int i;
 	int j;
+	int last;
 	int nul;
 	int n=0;
 	int w;
@@ -56,20 +64,39 @@ void draw(){
 	nul=INT_MAX;
 	chewing_interval_Enumerate(ctx);
 
+	last=0;
+	i=0;
 	j=0;
 	while(chewing_interval_hasNext(ctx)){
 		chewing_interval_Get(ctx, &itv);
-		if(j&1)
-			printf("\033[2m");
-		else
-			printf("\033[0;44m\033[?25l");
+
+		setColor(j);
+		for(i=0;itv.from>last;last+=1,++i){
+			if(last==n)
+				printf("\033[1m");
+			uputchar(unext(&s,&nul));
+			setColor(j);
+		}
+		if(i)
+			j+=1;
+		last=itv.to;
+
+		setColor(j);
 		for(i=itv.from;i<itv.to;++i){
 			if(i==n)
 				printf("\033[1m");
-			uprint(unext(&s,&nul));
+			uputchar(unext(&s,&nul));
 		}
-		printf("\033[0;44m\033[?25l");
+		setColor(j);
 		j+=1;
+	}
+	setColor(j);
+	while((s=unext(&s,&nul))!=NULL){
+		if(i==n)
+			printf("\033[1m");
+		uputchar(unext(&s,&nul));
+		setColor(j);
+		i+=1;
 	}
 
 	printf("\033[4m");
