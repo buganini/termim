@@ -293,6 +293,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 											write(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
 										break;
 								}
+								term_put_cursor(term);
 								break;
 							case 'm':
 								term->buf[term->i-1]=0;
