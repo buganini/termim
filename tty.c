@@ -184,7 +184,7 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 			}
 		}
 	}
-	if(i-j>0){
+	if(tty->escape==0 && i-j>0){
 		r=write(tty->out, ibuf+j, i-j);
 		POST_WRITE();
 	}
