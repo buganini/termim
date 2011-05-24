@@ -298,6 +298,15 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 							case 'm':
 								term->buf[term->i-1]=0;
 								argv=parse_arg(&term->buf[2]);
+								if(argv[0]==NULL){
+									term->bold=0;
+									term->underline=0;
+									term->blink=0;
+									term->reverse=0;
+									term->invisible=0;
+									term->fg=0;
+									term->bg=0;
+								}
 								for(argi=0;argv[argi]!=NULL;++argi){
 									t=strtol(argv[argi], NULL, 10);
 									switch(t){
