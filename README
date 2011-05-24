@@ -20,7 +20,6 @@ About Engine:
 	display UI at stdout, with window size Row:2 Col:Inherit
 
 TODO:
-	term buffer
+	fix rest bug in term.c
 	improve termim-chewing
-	improve sub terminal offset
 	improve keymap?
