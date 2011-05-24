@@ -130,7 +130,7 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 				j=i+1;
 				continue;
 			}
-			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z')){
+			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
 				tty->escape=0;
 				j=i+1;
 				switch(tty->buf[1]){
