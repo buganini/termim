@@ -23,6 +23,7 @@ Related Projects:
 	http://code.google.com/p/ucimf/
 
 TODO:
+	allow specifying ambiguous width
 	fix rest bug in term.c
 	improve termim-chewing
 	improve keymap?
