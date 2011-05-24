@@ -37,6 +37,7 @@ int chewing_is_entering(ChewingContext *ctx){
 void draw(){
 	const char *s;
 	int i;
+	int j;
 	int nul;
 	int n=0;
 	int w;
@@ -55,16 +56,21 @@ void draw(){
 	s=chewing_buffer_String(ctx);
 	nul=INT_MAX;
 	chewing_interval_Enumerate(ctx);
-	
+
+	j=0;
 	while(chewing_interval_hasNext(ctx)){
 		chewing_interval_Get(ctx, &itv);
-
+		if(j&1)
+			printf("\033[2m");
+		else
+			printf("\033[0;44m\033[?25l");
 		for(i=itv.from;i<itv.to;++i){
 			if(i==n)
 				printf("\033[1m");
 			uprint(unext(&s,&nul));
 		}
-		printf("\033[0;44m\033[?25l ");
+		printf("\033[0;44m\033[?25l");
+		j+=1;
 	}
 	
 	s=chewing_zuin_String(ctx, &nul);
@@ -123,7 +129,7 @@ int main(int argc, char *argv[]){
 	chewing_set_candPerPage(ctx, 1);
 	chewing_set_addPhraseDirection(ctx, 1);
 	chewing_set_escCleanAllBuf(ctx, 1);
-	chewing_set_maxChiSymbolLen(ctx, 16);
+	chewing_set_maxChiSymbolLen(ctx, 64);
 	chewing_set_selKey(ctx, selKey_define, 10);
 	chewing_set_spaceAsSelection(ctx, 1);
 
