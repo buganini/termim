@@ -79,11 +79,7 @@ ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
 
 //	bypass processing:
 //	return write(tty->out, ibuf, len);
-FILE *fp=fopen("lala.txt","a");
 	for(r=0;r<len;++r)
-fprintf(fp, "%02X ",ibuf[r]);
-fprintf(fp,"\n");
-fflush(fp);
 	if(len==1){
 		switch((unsigned char)*ibuf){
 			case UP:
