@@ -99,7 +99,7 @@ void draw(){
 		i+=1;
 	}
 
-	printf("\033[4m");
+	printf("\033[0;44;4m");
 	s=chewing_zuin_String(ctx, &nul);
 	printf("%s", s);
 	printf("\033[0;44m\033[?25l");
