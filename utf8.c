@@ -409,6 +409,7 @@ int ustrwidth(const char *s, int l){
 }
 
 int uprint(const char *s){
+	if(s==NULL) return 0;
 	if(*s==0){
 		return 0;
 	}else if((*s & bb10000000) == bb00000000){
