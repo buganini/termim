@@ -135,6 +135,14 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 					term->cur_col=1;
 				term_put_cursor(term);
 				break;
+			case '\r':
+				WRITE(term->out, ibuf+j, i-j+1 /* include \n */);
+				j=i+1;
+
+				term->cur_col=1;
+				term_put_cursor(term);
+
+				break;
 			case '\n':
 				WRITE(term->out, ibuf+j, i-j+1 /* include \n */);
 				j=i+1;
@@ -299,6 +307,31 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								}
 								term_put_cursor(term);
 								break;
+							case 'K':
+								term->buf[term->i-1]=0;
+								argv=parse_arg(&term->buf[2]);
+								t=0;
+								if(argv[0]!=NULL)
+									t=strtol(argv[0], NULL, 10);
+								free_arg(argv);
+								switch(t){
+									case 0:
+										for(t=term->cur_col;t<=term->siz_col;++t)
+											WRITE(term->out, " ", 1);
+										break;
+									case 1:
+										WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, 1));
+										for(t=term->cur_col;t>=1;--t)
+											WRITE(term->out, " ", 1);
+										break;										
+									case 2:
+										WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, 1));
+										for(t=1;t<=term->siz_col;++t)
+											WRITE(term->out, " ", 1);
+										break;
+								}
+								term_put_cursor(term);
+								break;
 							case 'm':
 								term->buf[term->i-1]=0;
 								argv=parse_arg(&term->buf[2]);
@@ -338,6 +371,9 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 										case 8:
 											term->invisible=0;
 											break;
+										case 27:
+											term->reverse=0;
+											break;
 										case 30:
 										case 31:
 										case 32:
@@ -362,6 +398,9 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 										case 49:
 											term->bg=t;
 											break;
+										default:
+											WRITE(term->out, buf, sprintf(buf, "\033[%dm", t));
+											break;
 									}
 								}
 								free_arg(argv);
@@ -376,6 +415,8 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 								for(argi=0;argv[argi]!=NULL && argi<2;++argi){
 									ia[argi]=strtol(argv[argi], NULL, 10);
 								}
+								term->scr_beg=ia[0];
+								term->scr_end=ia[1];
 								ia[0]+=term->off_row;
 								ia[1]+=term->off_row;
 								WRITE(term->out, buf, sprintf(buf, "\033[%d;%dr", ia[0], ia[1]));
