@@ -123,6 +123,10 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 					term->cur_row += term->cur_col / term->siz_col;
 					term->cur_col /= term->siz_col;
 				}
+				//XXX
+				if(term->cur_row > term->scr_end){
+					term->cur_row = term->scr_end;
+				}
 				term_put_cursor(term);
 
 				break;
@@ -147,10 +151,17 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				WRITE(term->out, ibuf+j, i-j+1 /* include \n */);
 				j=i+1;
 
-				term->cur_row+=1;
-				if(term->cur_row > term->siz_row)
-					term->cur_row=term->siz_row;
-				term->cur_col=1;
+				if(term->cur_row>=term->scr_beg && term->cur_row<=term->scr_end){
+					term->cur_row+=1;
+					if(term->cur_row > term->scr_end)
+						term->cur_row=term->scr_end;
+					term->cur_col=1;
+				}else{
+					term->cur_row+=1;
+					if(term->cur_row > term->siz_row)
+						term->cur_row=term->siz_row;
+					term->cur_col=1;
+				}
 				term_put_cursor(term);
 
 				break;
@@ -440,6 +451,10 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 		if(term->cur_col > term->siz_col){
 			term->cur_row += term->cur_col / term->siz_col;
 			term->cur_col /= term->siz_col;
+		}
+		//XXX
+		if(term->cur_row > term->scr_end){
+			term->cur_row = term->scr_end;
 		}
 	}
 	return ret;
