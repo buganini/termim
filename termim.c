@@ -84,6 +84,7 @@ main(int argc, char *argv[])
 	time_t tvec, start;
 	char obuf[BUFSIZ];
 	char ibuf[BUFSIZ];
+	keymap_t kmap;
 	
 	fd_set rfd;
 	int flushtime = 30;
@@ -179,11 +180,12 @@ main(int argc, char *argv[])
 	signal(SIGUSR2, &sigforwarder);
 	signal(SIGWINCH, &winchforwarder);
 
-	tty_init();
-	tty=tty_create();
-	tty_assoc_output(tty, master2);
-	tty2=tty_create();
-	tty_assoc_output(tty2, master);
+	ioctl(STDIN_FILENO, GIO_KEYMAP, &kmap);
+	kmap.key[42].map[2] = CTRL_SHIFT;
+	kmap.key[54].map[2] = CTRL_SHIFT;
+	kmap.key[57].map[2] = CTRL_SPACE;
+	kmap.key[57].map[1] = SHIFT_SPACE;
+	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
 
 	if (flushtime > 0)
 		tvp = &tv;
@@ -217,7 +219,7 @@ main(int argc, char *argv[])
 			cc = read(STDIN_FILENO, ibuf, sizeof (ibuf));
 			if (cc < 0)
 				break;
-			tty_writev(tty, ibuf, cc);
+			write(master2, ibuf, cc);
 		}
 		if (n > 0 && FD_ISSET(master, &rfd)) {
 			cc = read(master, obuf, sizeof (obuf));
@@ -235,7 +237,7 @@ main(int argc, char *argv[])
 			cc = read(tube[0], ibuf, sizeof (ibuf));
 			if(cc < 0 && errno!=EAGAIN)
 				break;
-			tty_writer(tty2, ibuf, cc);
+			write(master, ibuf, cc);
 		}
 		tvec = time(0);
 		if (tvec - start >= flushtime) {
@@ -361,7 +363,6 @@ done(int eno)
 	if (ttyflg)
 		(void)tcsetattr(STDIN_FILENO, TCSAFLUSH, &tt);
 	tvec = time(NULL);
-	tty_destroy(tty);
 	term_destroy(term);
 	term_destroy(term2);
 	(void)close(master);
