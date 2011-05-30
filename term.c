@@ -150,7 +150,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				WRITE(term->out, ibuf+j, i-j+1 /* include \n */);
 				j=i+1;
 
-				if(term->cur_row>=term->scr_beg && term->cur_row<=term->scr_end){
+				if(term->cur_row<=term->scr_end){
 					term->cur_row+=1;
 					if(term->cur_row > term->scr_end)
 						term->cur_row=term->scr_end;
