@@ -190,114 +190,122 @@ int main(int argc, char *argv[]){
 							skip=1;
 							break;
 					}
-				}
-				if(!skip){
-					for(i=0;i<n;++i){
-						switch((unsigned char)(ibuf[i])){
-							case '\x1b':
-								escape_i=0;
-								escape=1;
-								break;
+					if(skip){
+						if(chewing_commit_Check(ctx)){
+							s=chewing_commit_String(ctx);
+							write(out, s, strlen(s));
+							free(s);
+							chewing_handle_Esc(ctx);
 						}
-						if(escape){
-							escape_buf[escape_i]=ibuf[i];
-							escape_i+=1;
-							if(escape_i==2 && escape_buf[1]!='['){
-								escape=0;
-								switch(ibuf[1]){
-									case '1':
-										chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
-										s=chewing_buffer_String(ctx);
-										write(out, buf, sprintf(buf, "%s", s));
-										chewing_handle_Esc(ctx);
-										skip=1;
-										break;
-									case '2':
-										chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
-										skip=1;
-										break;
-									default:
-										write(out, escape_buf, escape_i);
-								}
-							}
-							if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
-								escape=0;
-								switch(escape_buf[1]){
-									case '[':
-										switch(ibuf[i]){
-											case 'A':
-												if(escape_i==3 && chewing_is_entering(ctx)){
-													chewing_handle_Up(ctx);
-												}else{
-													write(out, escape_buf, escape_i);
-												}
-												break;
-											case 'B':
-												if(escape_i==3 && chewing_is_entering(ctx)){
-													chewing_handle_Down(ctx);
-												}else{
-													write(out, escape_buf, escape_i);
-												}
-												break;
-											case 'C':
-												if(escape_i==3 && chewing_is_entering(ctx)){
-													chewing_handle_Right(ctx);
-												}else{
-													write(out, escape_buf, escape_i);
-												}
-												break;
-											case 'D':
-												if(escape_i==3 && chewing_is_entering(ctx)){
-													chewing_handle_Left(ctx);
-												}else{
-													write(out, escape_buf, escape_i);
-												}
-												break;
-											default:
-												write(out, escape_buf, escape_i);
-												break;
-										}
-										break;
-									default:
-										write(out, escape_buf, escape_i);
-										break;
-								}
-							}
-						}else{
-							switch(ibuf[i]){
-								case ENTER:
-									if(chewing_is_entering(ctx))
-										chewing_handle_Enter(ctx);
-									else
-										write(out, buf, sprintf(buf, "\r"));
-									break;
-								case BACKSPACE:
-									if(chewing_is_entering(ctx))
-										chewing_handle_Backspace(ctx);
-									else
-										write(out, buf, sprintf(buf, "%c", BACKSPACE));
-									break;
-								case SPACE:
-									if(chewing_is_entering(ctx))
-										chewing_handle_Space(ctx);
-									else
-										write(out, buf, sprintf(buf, "%c", SPACE));
-									break;
-								default:
-									if((ibuf[i] & 0xFF00)==0 && isprint(ibuf[i]))
-										chewing_handle_Default(ctx, ibuf[i]);
-									else{
-										write(out, ibuf+i, 1);
-									}
-							}
-						}
+						continue;
 					}
 				}
-				if(chewing_commit_Check(ctx)){
-					s=chewing_commit_String(ctx);
-					write(out, s, strlen(s));
-					free(s);
-					chewing_handle_Esc(ctx);
+				for(i=0;i<n;++i){
+					switch((unsigned char)(ibuf[i])){
+						case '\x1b':
+							escape_i=0;
+							escape=1;
+							break;
+					}
+					if(escape){
+						escape_buf[escape_i]=ibuf[i];
+						escape_i+=1;
+						if(escape_i==2 && escape_buf[1]!='['){
+							escape=0;
+							switch(ibuf[1]){
+								case '1':
+									chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
+									s=chewing_buffer_String(ctx);
+									write(out, buf, sprintf(buf, "%s", s));
+									chewing_handle_Esc(ctx);
+									skip=1;
+									break;
+								case '2':
+									chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+									skip=1;
+									break;
+								default:
+									write(out, escape_buf, escape_i);
+							}
+						}
+						if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
+							escape=0;
+							switch(escape_buf[1]){
+								case '[':
+									switch(ibuf[i]){
+										case 'A':
+											if(escape_i==3 && chewing_is_entering(ctx)){
+												chewing_handle_Up(ctx);
+											}else{
+												write(out, escape_buf, escape_i);
+											}
+											break;
+										case 'B':
+											if(escape_i==3 && chewing_is_entering(ctx)){
+												chewing_handle_Down(ctx);
+											}else{
+												write(out, escape_buf, escape_i);
+											}
+											break;
+										case 'C':
+											if(escape_i==3 && chewing_is_entering(ctx)){
+												chewing_handle_Right(ctx);
+											}else{
+												write(out, escape_buf, escape_i);
+											}
+											break;
+										case 'D':
+											if(escape_i==3 && chewing_is_entering(ctx)){
+												chewing_handle_Left(ctx);
+											}else{
+												write(out, escape_buf, escape_i);
+											}
+											break;
+										default:
+											write(out, escape_buf, escape_i);
+											break;
+									}
+									break;
+								default:
+									write(out, escape_buf, escape_i);
+									break;
+							}
+						}
+					}else{
+						switch(ibuf[i]){
+							case ENTER:
+								if(chewing_is_entering(ctx))
+									chewing_handle_Enter(ctx);
+								else
+									write(out, buf, sprintf(buf, "\r"));
+								break;
+							case BACKSPACE:
+								if(chewing_is_entering(ctx))
+									chewing_handle_Backspace(ctx);
+								else
+									write(out, buf, sprintf(buf, "%c", BACKSPACE));
+								break;
+							case SPACE:
+								if(chewing_is_entering(ctx))
+									chewing_handle_Space(ctx);
+								else
+									write(out, buf, sprintf(buf, "%c", SPACE));
+								break;
+							default:
+								if((ibuf[i] & 0xFF00)==0 && isprint(ibuf[i]))
+									chewing_handle_Default(ctx, ibuf[i]);
+								else{
+									write(out, ibuf+i, 1);
+								}
+						}
+					}
+					if(chewing_commit_Check(ctx)){
+						s=chewing_commit_String(ctx);
+						write(out, s, strlen(s));
+						free(s);
+						chewing_handle_Esc(ctx);
+					}
+
 				}
 			}
 		}
