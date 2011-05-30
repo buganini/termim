@@ -228,7 +228,7 @@ int main(int argc, char *argv[]){
 									write(out, escape_buf, escape_i);
 							}
 						}
-						if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
+						if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='N') || (ibuf[i]>='P' && ibuf[i]<='Z') || ibuf[i]=='~'){
 							escape=0;
 							switch(escape_buf[1]){
 								case '[':
