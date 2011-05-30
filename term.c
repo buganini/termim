@@ -174,7 +174,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 				j=i+1;
 				continue;
 			}
-			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
+			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='N') || (ibuf[i]>='P' && ibuf[i]<='Z') || ibuf[i]=='~'){
 				term->escape=0;
 				j=i+1;
 				switch(term->buf[1]){
