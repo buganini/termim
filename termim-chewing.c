@@ -203,6 +203,8 @@ int main(int argc, char *argv[]){
 				for(i=0;i<n;++i){
 					switch((unsigned char)(ibuf[i])){
 						case '\x1b':
+							if(escape)
+								write(out, escape_buf, escape_i);
 							escape_i=0;
 							escape=1;
 							break;

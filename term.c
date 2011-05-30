@@ -113,6 +113,8 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	for(j=i=0;i<len;++i){
 		switch(ibuf[i]){
 			case '\x1b':
+				if(term->escape)
+					 WRITE(term->out, term->buf, term->i);
 				term->i=0;
 				term->escape=1;
 				WRITE(term->out, ibuf+j, i-j);
