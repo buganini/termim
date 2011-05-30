@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "common.h"
 #include "term.h"
 #include "utf8.h"
 
@@ -458,4 +457,33 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 		}
 	}
 	return ret;
+}
+
+char ** parse_arg(char *s){
+	int size=4;
+	int argi=0;
+	char *str=strdup(s);
+	char *t;
+	char **argv=malloc(sizeof(char *)*4);
+
+	while((t=strsep(&str, ";")) != NULL){
+		if(*t==0)
+			continue;
+		if(argi>=size){
+			size+=2;
+			argv=realloc(argv, sizeof(char *)*size);
+		}
+		argv[argi]=t;
+		argi+=1;
+	}
+	argv[argi]=NULL;
+	if(argv[0]==NULL)
+		free(str);
+	return argv;
+}
+
+void free_arg(char **argv){
+	if(argv[0])
+		free(argv[0]);
+	free(argv);
 }

@@ -43,3 +43,4 @@ void term_assoc_output(struct term *term, int out);
 ssize_t term_read(struct term *term, void *buf, size_t len);
 ssize_t term_write(struct term *term, const char *ibuf, size_t len);
 char ** parse_arg(char *s);
+void free_arg(char **argv);
