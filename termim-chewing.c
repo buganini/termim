@@ -138,6 +138,7 @@ int main(int argc, char *argv[]){
 	unsigned char c;
 	int n;
 	fd_set rfd;
+	int ctrl=0, alt=0, shift=0;
 
 	if(argc!=2)
 		return 1;
@@ -169,20 +170,48 @@ int main(int argc, char *argv[]){
 			break;
 		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)){
 			n=read(STDIN_FILENO, ibuf, BUFSIZ);
+			kill(getppid(), SIGINFO);
 			if(n<=0){
 			}else if(n==1){
 				c=*ibuf;
 				switch(c){
-					case CTRL_SPACE:
-					case '`':
-						chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
+					case CTRL_PRESS:
+						ctrl=1;
 						break;
-					case SHIFT_SPACE:
-					case '~':
-						chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+					case CTRL_RELEASE:
+						ctrl=0;
+						break;
+					case ALT_PRESS:
+						alt=1;
+						break;
+					case ALT_RELEASE:
+						alt=0;
+						break;
+					case SHIFT_PRESS:
+						shift=1;
+						break;
+					case SHIFT_RELEASE:
+						shift=0;
+						break;
+					case '1':
+						if(alt)
+							chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
+						else
+							chewing_handle_Default(ctx, c);
+						break;
+					case '2':
+						if(alt)
+							chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+						else
+							chewing_handle_Default(ctx, c);
 						break;
 					case SPACE:
-						chewing_handle_Space(ctx);
+						if(ctrl)
+							chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
+						else if(shift)
+							chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+						else
+							chewing_handle_Space(ctx);
 						break;
 					case ENTER:
 						if(chewing_is_entering(ctx))

@@ -10,8 +10,8 @@ Architecture:
 
 Currently there is only chewing engine.
 
-Use Ctrl+Space or '`' to toggle Eng/Chi Mode.
-Use Shift+Space or '~' to toggle Half/Full Mode.
+Use Ctrl+Space or Alt+1 to toggle Eng/Chi Mode.
+Use Shift+Space or Alt+2 to toggle Half/Full Mode.
 (Ctrl/Shift+Space is impossible to work in a virtual terminal under X11)
 
 About IM Engine:

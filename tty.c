@@ -19,6 +19,7 @@
  */
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,9 +33,16 @@
 #include "common.h"
 #include "keymap.h"
 
+volatile int lock=0;
+
+void siginfo(int sig){
+	lock-=1;
+}
+
 struct tty * tty_create(){
 	struct tty *ret=malloc(sizeof(struct tty));
 	ret->escape=0;
+	signal(SIGINFO, &siginfo);
 	return ret;
 }
 
@@ -81,7 +89,7 @@ ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
 //	return write(tty->out, ibuf, len);
 	for(r=0;r<len;++r)
 	if(len==1){
-		switch((unsigned char)*ibuf){
+		switch((unsigned char)(*ibuf)){
 			case UP:
 				WRITE(tty->out, buf, sprintf(buf, "\033[A"));
 				break;
@@ -104,6 +112,16 @@ ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
 	return ret;
 }
 
+#define ALONE_WRITE(X,Y,Z) do{ \
+lock+=1; \
+r=write((X),(Y),(Z)); \
+while(lock!=0); \
+if(r<0){ \
+	return r; \
+} \
+ret+=r; \
+}while(0);
+
 ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
 	char buf[128];
@@ -114,20 +132,39 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 //	return write(tty->out, ibuf, len);
 
 	for(j=i=0;i<len;++i){
-		switch(ibuf[i]){
+		switch((unsigned char)(ibuf[i])){
 			case '\x1b':
 				tty->i=0;
 				tty->escape=1;
-				WRITE(tty->out, ibuf+j, i-j);
-				break;				
+				if(i-j>0)
+					ALONE_WRITE(tty->out, ibuf+j, i-j);
+				break;
+			case CTRL_SPACE:
+				ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", CTRL_PRESS));
+				ALONE_WRITE(tty->out, " ", 1);
+				ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", CTRL_RELEASE));
+				j=i+1;
+				break;			
+			case SHIFT_SPACE:
+				ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", SHIFT_PRESS));
+				ALONE_WRITE(tty->out, " ", 1);
+				ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", SHIFT_RELEASE));
+				j=i+1;
+				break;			
 		}
 		if(tty->escape){
 			tty->buf[tty->i]=ibuf[i];
 			tty->i+=1;
 			if(tty->i==2 && tty->buf[1]!='['){
-				WRITE(tty->out, tty->buf, 2);
 				tty->escape=0;
 				j=i+1;
+				if((ibuf[1]>='0' && ibuf[1]<='9') || (ibuf[1]>='a' && ibuf[1]<='z') || (ibuf[1]>='A' && ibuf[1]<='Z')){
+					ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", ALT_PRESS));
+					ALONE_WRITE(tty->out, &tty->buf[1], 1);
+					ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", ALT_RELEASE));
+				}else{
+					ALONE_WRITE(tty->out, tty->buf, 2);
+				}
 				continue;
 			}
 			if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='Z') || ibuf[i]=='~'){
@@ -138,46 +175,46 @@ ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
 						switch(ibuf[i]){
 							case 'A':
 								if(tty->i==3){
-									WRITE(tty->out, buf, sprintf(buf, "%c", UP));
+									ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", UP));
 								}else{
-									WRITE(tty->out, tty->buf, tty->i);
+									ALONE_WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'B':
 								if(tty->i==3){
-									WRITE(tty->out, buf, sprintf(buf, "%c", DOWN));
+									ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", DOWN));
 								}else{
-									WRITE(tty->out, tty->buf, tty->i);
+									ALONE_WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'C':
 								if(tty->i==3){
-									WRITE(tty->out, buf, sprintf(buf, "%c", RIGHT));
+									ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", RIGHT));
 								}else{
-									WRITE(tty->out, tty->buf, tty->i);
+									ALONE_WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							case 'D':
 								if(tty->i==3){
-									WRITE(tty->out, buf, sprintf(buf, "%c", LEFT));
+									ALONE_WRITE(tty->out, buf, sprintf(buf, "%c", LEFT));
 								}else{
-									WRITE(tty->out, tty->buf, tty->i);
+									ALONE_WRITE(tty->out, tty->buf, tty->i);
 								}
 								break;
 							default:
-								WRITE(tty->out, tty->buf, tty->i);
+								ALONE_WRITE(tty->out, tty->buf, tty->i);
 								break;
 						}
 						break;
 					default:
-						WRITE(tty->out, tty->buf, tty->i);
+						ALONE_WRITE(tty->out, tty->buf, tty->i);
 						break;
 				}
 			}
 		}
 	}
 	if(tty->escape==0 && i-j>0){
-		WRITE(tty->out, ibuf+j, i-j);
+		ALONE_WRITE(tty->out, ibuf+j, i-j);
 	}
 
 	return ret;

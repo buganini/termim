@@ -171,13 +171,6 @@ main(int argc, char *argv[])
 
 	fcntl(tube[0], F_SETFL, O_NONBLOCK);
 
-	tty=tty_create();
-	tty_assoc_input(tty, STDIN_FILENO);
-	tty_assoc_output(tty, master2);
-	tty2=tty_create();
-	tty_assoc_input(tty2, tube[0]);
-	tty_assoc_output(tty2, master);
-
 	signal(SIGINT, &sigforwarder);
 	signal(SIGQUIT, &sigforwarder);
 	signal(SIGPIPE, &sigforwarder);
@@ -185,6 +178,13 @@ main(int argc, char *argv[])
 	signal(SIGUSR1, &sigforwarder);
 	signal(SIGUSR2, &sigforwarder);
 	signal(SIGWINCH, &winchforwarder);
+
+	tty=tty_create();
+	tty_assoc_input(tty, STDIN_FILENO);
+	tty_assoc_output(tty, master2);
+	tty2=tty_create();
+	tty_assoc_input(tty2, tube[0]);
+	tty_assoc_output(tty2, master);
 
 	if (flushtime > 0)
 		tvp = &tv;
