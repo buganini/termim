@@ -194,9 +194,12 @@ int main(int argc, char *argv[]){
 						shift=0;
 						break;
 					case '1':
-						if(alt)
+						if(alt){
 							chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
-						else
+							s=chewing_buffer_String(ctx);
+							write(out, buf, sprintf(buf, "%s", s));
+							chewing_handle_Esc(ctx);
+						}else
 							chewing_handle_Default(ctx, c);
 						break;
 					case '2':
