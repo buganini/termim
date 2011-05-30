@@ -179,11 +179,10 @@ main(int argc, char *argv[])
 	signal(SIGUSR2, &sigforwarder);
 	signal(SIGWINCH, &winchforwarder);
 
+	tty_init();
 	tty=tty_create();
-	tty_assoc_input(tty, STDIN_FILENO);
 	tty_assoc_output(tty, master2);
 	tty2=tty_create();
-	tty_assoc_input(tty2, tube[0]);
 	tty_assoc_output(tty2, master);
 
 	if (flushtime > 0)
@@ -215,9 +214,10 @@ main(int argc, char *argv[])
 		if (n < 0 && errno != EINTR)
 			break;
 		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)) {
-			cc = tty_readr_writev(tty, ibuf, sizeof (ibuf));
+			cc = read(STDIN_FILENO, ibuf, sizeof (ibuf));
 			if (cc < 0)
 				break;
+			tty_writev(tty, ibuf, cc);
 		}
 		if (n > 0 && FD_ISSET(master, &rfd)) {
 			cc = read(master, obuf, sizeof (obuf));
@@ -232,9 +232,10 @@ main(int argc, char *argv[])
 			term_write(term2, obuf, cc);
 		}
 		if (n > 0 && FD_ISSET(tube[0], &rfd)) {
-			cc = tty_readv_writer(tty2, ibuf, sizeof (ibuf));
-			if (cc < 0)
+			cc = read(tube[0], ibuf, sizeof (ibuf));
+			if(cc < 0 && errno!=EAGAIN)
 				break;
+			tty_writer(tty2, ibuf, cc);
 		}
 		tvec = time(0);
 		if (tvec - start >= flushtime) {

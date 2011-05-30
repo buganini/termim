@@ -50,17 +50,15 @@ void tty_destroy(struct tty *tty){
 	free(tty);
 }
 
-void tty_assoc_input(struct tty *tty, int in){
+void tty_init(void){
 	keymap_t kmap;
 
-	tty->in=in;
-
-	ioctl(in, GIO_KEYMAP, &kmap);
+	ioctl(STDIN_FILENO, GIO_KEYMAP, &kmap);
 	kmap.key[42].map[2] = CTRL_SHIFT;
 	kmap.key[54].map[2] = CTRL_SHIFT;
 	kmap.key[57].map[2] = CTRL_SPACE;
 	kmap.key[57].map[1] = SHIFT_SPACE;
-	ioctl(in, PIO_KEYMAP, &kmap);
+	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
 }
 
 void tty_assoc_output(struct tty *tty, int out){
@@ -75,15 +73,9 @@ if(r<0){ \
 ret+=r; \
 }while(0);
 
-ssize_t tty_readv_writer(struct tty *tty, char *ibuf, size_t len){
+ssize_t tty_writer(struct tty *tty, char *ibuf, size_t len){
 	int r=0, ret=0;
 	char buf[128];
-
-	len=read(tty->in, ibuf, len);
-	if(len <= 0 && errno!=EAGAIN)
-		return -1;
-	if(len==0)
-		return 0;
 
 //	bypass processing:
 //	return write(tty->out, ibuf, len);
@@ -122,11 +114,9 @@ if(r<0){ \
 ret+=r; \
 }while(0);
 
-ssize_t tty_readr_writev(struct tty *tty, char *ibuf, size_t len){
+ssize_t tty_writev(struct tty *tty, char *ibuf, size_t len){
 	int i, j, r=0, ret=0;
 	char buf[128];
-
-	len=read(tty->in, ibuf, len);
 
 //	bypass processing:
 //	return write(tty->out, ibuf, len);
