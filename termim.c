@@ -49,7 +49,6 @@
 
 #include "keymap.h"
 #include "term.h"
-#include "tty.h"
 
 extern int ambi_width;
 
