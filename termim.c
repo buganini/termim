@@ -264,15 +264,16 @@ winchforwarder(int sig)
 {
 	struct winsize win;
 	ioctl(STDIN_FILENO, TIOCGWINSZ, &win);
+
 	win.ws_row-=2;
 	term_set_size(term, win.ws_row, win.ws_col);
 	term_set_offset(term, 0, 0);
 	ioctl(master, TIOCSWINSZ, &win);
+
 	term_set_size(term2, 2, win.ws_col);
 	term_set_offset(term2, win.ws_row, 0);
 	win.ws_row=2;
 	ioctl(master2, TIOCSWINSZ, &win);
-	kill(child, sig);
 }
 
 
