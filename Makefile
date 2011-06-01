@@ -4,10 +4,10 @@ LDFLAGS+=-L/usr/local/lib
 
 all: termim termim-chewing
 
-termim:
+termim: utf8.c term.c termim.c
 	$(CC) ${CFLAGS} ${LDFLAGS} -lutil utf8.c term.c termim.c -o termim
 
-termim-chewing:
+termim-chewing: utf8.c termim-chewing.c
 	$(CC) ${CFLAGS} ${LDFLAGS} -lchewing utf8.c termim-chewing.c -o termim-chewing
 
 install: install-termim install-termim-chewing
