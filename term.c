@@ -95,6 +95,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 
 	term_put_cursor(term);
 
+	WRITE(term->out, buf, sprintf(buf, "\033[?25l"));
 	WRITE(term->out, buf, sprintf(buf, "\033[m"));
 	if(term->bold)
 		WRITE(term->out, buf, sprintf(buf, "\033[1m"));
@@ -107,7 +108,6 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 	if(term->invisible)
 		WRITE(term->out, buf, sprintf(buf, "\033[8m"));
 	WRITE(term->out, buf, sprintf(buf, "\033[?12%c", hl[term->cur_blink?1:0]));
-	WRITE(term->out, buf, sprintf(buf, "\033[?25%c", hl[term->cur_visible?1:0]));
 	WRITE(1, buf, sprintf(buf, "\033[%d;%dm", term->fg, term->bg));
 
 	for(j=i=0;i<len;++i){
@@ -458,6 +458,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 			term->cur_row = term->scr_end;
 		}
 	}
+	WRITE(term->out, buf, sprintf(buf, "\033[?25%c", hl[term->cur_visible?1:0]));
 	return ret;
 }
 
