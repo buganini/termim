@@ -23,6 +23,11 @@ Related Projects:
 	http://code.google.com/p/ucimf/
 
 TODO:
-	fix rest bug in term.c
+	fixbug/complete term.c
+		horizontal offset
 	improve termim-chewing
+	more im engine / im switching
+		termim-mozc
+		termim-kmfl
+		termim-m17n
 	improve keymap?
