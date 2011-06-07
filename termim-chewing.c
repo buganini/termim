@@ -143,10 +143,10 @@ int main(int argc, char *argv[]){
 	int n;
 	fd_set rfd;
 
-	if(argc!=2)
-		return 1;
-
-	out=strtol(argv[1], NULL, 10);
+	if((s=getenv("TERMIM"))!=NULL)
+		out=strtol(s, NULL, 10);
+	else
+		out=STDOUT_FILENO;
 
 	signal(SIGWINCH, &winch);
 	winch(0);

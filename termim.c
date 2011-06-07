@@ -108,6 +108,9 @@ main(int argc, char *argv[])
 	if(pipe(tube)==-1)
 		err(1, "pipe");
 
+	sprintf(obuf, "%d", tube[1]);
+	setenv("TERMIM", obuf, 1);
+
 	if ((ttyflg = isatty(STDIN_FILENO)) != 0) {
 		if (tcgetattr(STDIN_FILENO, &tt) == -1)
 			err(1, "tcgetattr");
@@ -337,12 +340,10 @@ doshell(char **av)
 static void
 dodock()
 {
-	char buf[16];
-	char *argv[]={"termim-chewing", buf,NULL};
+	char *argv[]={"termim-chewing", NULL};
 	(void)close(tube[0]);
 	(void)close(master2);
 	login_tty(slave2);
-	sprintf(buf, "%d",tube[1]);
 	execvp(argv[0], argv);
 	warn("%s", "ime");
 	fail();
