@@ -10,8 +10,14 @@ Architecture:
 
 Currently there is only chewing engine.
 
+
+set im engines in TERMIM_IM, eg:
+env TERMIM_IM="termim-chewing:termim-kmfl european" termim
+or put it in your shell configuration file.
+
 Use Ctrl+Space or Alt+1 to toggle Eng/Chi Mode.
 Use Shift+Space or Alt+2 to toggle Half/Full Mode.
+Use Alt+3 to switch to next IM engine.
 (Ctrl/Shift+Space is impossible to work in a virtual terminal under X11)
 
 About IM Engine:
