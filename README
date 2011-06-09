@@ -31,9 +31,7 @@ Related Projects:
 TODO:
 	fixbug/complete term.c
 		horizontal offset
-	improve termim-chewing
-	more im engine / im switching
+	more im engines
 		termim-mozc
-		termim-kmfl
 		termim-m17n
 	improve keymap?
