@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2011 Kuan-Chung Chiu <buganini@gmail.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF MIND, USE, DATA OR PROFITS, WHETHER
+ * IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * This library draw on tty specified by $slave
+ * with specified offset and deal with window size
+ *
+ */
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -132,6 +152,7 @@ void draw(){
 }
 
 int main(int argc, char *argv[]){
+	char *eargv[]={"termim-next", NULL};
 	char *s;
 	unsigned char ibuf[BUFSIZ];
 	char buf[128];
@@ -154,7 +175,7 @@ int main(int argc, char *argv[]){
 	chewing_Init( PREFIX "/share/chewing", "/tmp");
 	ctx = chewing_new();
 	chewing_set_ChiEngMode(ctx, 0);
-	chewing_set_KBType(ctx, chewing_KBStr2Num( "KB_DEFAULT"));
+	chewing_set_KBType(ctx, chewing_KBStr2Num("KB_DEFAULT"));
 	chewing_set_candPerPage(ctx, 10);
 	chewing_set_addPhraseDirection(ctx, 1);
 	chewing_set_escCleanAllBuf(ctx, 1);
@@ -214,7 +235,7 @@ int main(int argc, char *argv[]){
 						escape_i+=1;
 						if(escape_i==2 && escape_buf[1]!='['){
 							escape=0;
-							switch(ibuf[1]){
+							switch(escape_buf[i]){
 								case '1':
 									chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
 									s=chewing_buffer_String(ctx);
@@ -225,6 +246,9 @@ int main(int argc, char *argv[]){
 								case '2':
 									chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
 									skip=1;
+									break;
+								case '3':
+									execvp(eargv[0], eargv);
 									break;
 								default:
 									write(out, escape_buf, escape_i);

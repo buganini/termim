@@ -340,7 +340,7 @@ doshell(char **av)
 static void
 dodock()
 {
-	char *argv[]={"termim-chewing", NULL};
+	char *argv[]={"termim-next", NULL};
 	(void)close(tube[0]);
 	(void)close(master2);
 	login_tty(slave2);
