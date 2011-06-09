@@ -27,5 +27,6 @@ install-termim-kmfl:
 
 clean:
 	rm -f termim
+	rm -f termim-next
 	rm -f termim-chewing
 	rm -f termim-kmfl
