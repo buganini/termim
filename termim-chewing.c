@@ -221,6 +221,7 @@ int main(int argc, char *argv[]){
 							free(s);
 							chewing_handle_Esc(ctx);
 						}
+						draw();
 						continue;
 					}
 				}
