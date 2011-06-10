@@ -36,6 +36,7 @@
 #include "keymap.h"
 #include "utf8.h"
 
+char desc[1024];
 int out;
 struct winsize win;
 
@@ -87,10 +88,11 @@ int main(int argc, char *argv[]){
 	kbd=kmfl_load_keyboard(kbd_file);
 	ic=kmfl_make_keyboard_instance(NULL);
 	kmfl_attach_keyboard(ic, kbd);
+	kmfl_get_header(ic, SS_NAME, desc, sizeof(desc)-1);
 
 	printf("\033[H\033[44m\033[?25l");
 	printf("\033[K");
-	printf("KMFL: %s\n", argv[1]);
+	printf("KMFL: %s\n", desc);
 	printf("\033[K");
 
 	FD_ZERO(&rfd);
