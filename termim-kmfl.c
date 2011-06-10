@@ -105,6 +105,13 @@ int main(int argc, char *argv[]){
 			n=read(STDIN_FILENO, ibuf, BUFSIZ);
 			if(n<=0){
 			}else{
+				if(n==1){
+					switch((unsigned char)*ibuf){
+						case CTRL_SHIFT:
+							execvp(eargv[0], eargv);
+							break;
+					}
+				}
 				for(i=0;i<n;++i){
 					switch((unsigned char)(ibuf[i])){
 						case '\x1b':

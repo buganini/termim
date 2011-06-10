@@ -210,6 +210,9 @@ int main(int argc, char *argv[]){
 							chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
 							skip=1;
 							break;
+						case CTRL_SHIFT:
+							execvp(eargv[0], eargv);
+							break;
 					}
 					if(skip){
 						if(chewing_commit_Check(ctx)){

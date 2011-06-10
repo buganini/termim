@@ -17,8 +17,7 @@ or put it in your shell configuration file.
 
 Use Ctrl+Space or Alt+1 to toggle Eng/Chi Mode.
 Use Shift+Space or Alt+2 to toggle Half/Full Mode.
-Use Alt+3 to switch to next IM engine.
-(Ctrl/Shift+Space is impossible to work in a virtual terminal under X11)
+Use Ctrl+Shift or Alt+3 to switch to next IM engine.
 
 About IM Engine:
 	Take fd number specified at argv[1],
