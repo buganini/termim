@@ -211,6 +211,9 @@ int main(int argc, char *argv[]){
 							skip=1;
 							break;
 						case CTRL_SHIFT:
+							s=chewing_buffer_String(ctx);
+							write(out, buf, sprintf(buf, "%s", s));
+							chewing_handle_Esc(ctx);
 							execvp(eargv[0], eargv);
 							break;
 					}
@@ -252,6 +255,9 @@ int main(int argc, char *argv[]){
 									skip=1;
 									break;
 								case '3':
+									s=chewing_buffer_String(ctx);
+									write(out, buf, sprintf(buf, "%s", s));
+									chewing_handle_Esc(ctx);
 									execvp(eargv[0], eargv);
 									break;
 								default:
