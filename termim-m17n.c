@@ -116,6 +116,7 @@ int main(int argc, char *argv[]){
 				if(n==1){
 					switch((unsigned char)*ibuf){
 						case CTRL_SHIFT:
+							M17N_FINI();
 							execvp(eargv[0], eargv);
 							break;
 					}
@@ -136,6 +137,7 @@ int main(int argc, char *argv[]){
 							escape=0;						
 							switch(escape_buf[1]){
 								case '3':
+									M17N_FINI();
 									execvp(eargv[0], eargv);
 									break;
 								default:
