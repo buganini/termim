@@ -10,7 +10,7 @@ Architecture:
 
 Usage:
 	set im engines in TERMIM_IM, eg:
-	env TERMIM_IM="termim-chewing:termim-kmfl european" termim
+	env TERMIM_IM="termim-chewing:termim-kmfl european:termim-m17n ru phonetic" termim
 	or put it in your shell configuration file.
 
 Key Binding:
