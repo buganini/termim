@@ -32,7 +32,8 @@ Related Projects:
 TODO:
 	fixbug/complete term.c
 		horizontal offset
+		backspace for the wides
+		wordwrap for the wides
 	more im engines
 		termim-mozc
-		termim-m17n
 	improve keymap?
