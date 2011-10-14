@@ -76,7 +76,7 @@ int
 main(int argc, char *argv[])
 {
 	int cc;
-	struct termios rtt;
+	struct termios rtt, stt;
 	struct winsize win;
 	int ch, n;
 	struct timeval tv, *tvp;
@@ -87,6 +87,7 @@ main(int argc, char *argv[])
 	
 	fd_set rfd;
 	int flushtime = 30;
+	int readstdin;
 	int nfds=0;
 
 	while ((ch = getopt(argc, argv, "hnw")) != -1)
@@ -189,30 +190,32 @@ main(int argc, char *argv[])
 	kmap.key[57].map[1] = SHIFT_SPACE;
 	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
 
-	if (flushtime > 0)
-		tvp = &tv;
-	else
-		tvp = NULL;
-
 #define RESET "\033[m\033[2J\033[H"
 	term_write(term, RESET, sizeof(RESET));
 	term_write(term2, RESET, sizeof(RESET));
 
-	start = time(0);
-	FD_ZERO(&rfd);
+	start = tvec = time(0);
+	readstdin = 1;
 	if(master2 > tube[0]) nfds = tube[0];
 	if(master > nfds) nfds = master;
 	if(master2 > nfds) nfds = master2;
 	if(STDIN_FILENO > nfds) nfds = STDIN_FILENO;
 	nfds+=1;
 	for (;;) {
+		FD_ZERO(&rfd);
 		FD_SET(tube[0], &rfd);
 		FD_SET(master, &rfd);
 		FD_SET(master2, &rfd);
-		FD_SET(STDIN_FILENO, &rfd);
-		if (flushtime > 0) {
-			tv.tv_sec = flushtime;
+		if (readstdin)
+			FD_SET(STDIN_FILENO, &rfd);
+
+		if ((!readstdin && ttyflg) || flushtime > 0) {
+			tv.tv_sec = !readstdin && ttyflg ? 1 : flushtime - (tvec - start);
 			tv.tv_usec = 0;
+			tvp = &tv;
+			readstdin = 1;
+		} else {
+			tvp = NULL;
 		}
 		n = select(nfds, &rfd, 0, 0, tvp);
 		if (n < 0 && errno != EINTR)
@@ -221,6 +224,12 @@ main(int argc, char *argv[])
 			cc = read(STDIN_FILENO, ibuf, sizeof (ibuf));
 			if (cc < 0)
 				break;
+			if (cc == 0) {
+				if (tcgetattr(master, &stt) == 0 && (stt.c_lflag & ICANON) != 0) {
+					(void)write(master, &stt.c_cc[VEOF], 1);
+				}
+				readstdin = 0;
+			}
 			write(master2, ibuf, cc);
 		}
 		if (n > 0 && FD_ISSET(master, &rfd)) {
