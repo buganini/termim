@@ -174,6 +174,7 @@ main(int argc, char *argv[])
 	close(tube[1]);
 
 	fcntl(tube[0], F_SETFL, O_NONBLOCK);
+	fcntl(master, F_SETFL, O_NONBLOCK);
 
 	signal(SIGINT, &sigforwarder);
 	signal(SIGQUIT, &sigforwarder);
@@ -237,10 +238,12 @@ main(int argc, char *argv[])
 			write(master2, ibuf, cc);
 		}
 		if (n > 0 && FD_ISSET(master, &rfd)) {
-			cc = read(master, obuf, sizeof (obuf));
-			if (cc <= 0)
-				break;
-			term_write(term, obuf, cc);
+			while(1){
+				cc = read(master, obuf, sizeof (obuf));
+				if (cc <= 0)
+					break;
+				term_write(term, obuf, cc);
+			}
 		}
 		if (n > 0 && FD_ISSET(master2, &rfd)) {
 			cc = read(master2, obuf, sizeof (obuf));
