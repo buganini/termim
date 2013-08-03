@@ -14,12 +14,9 @@ Usage:
 	or put it in your shell configuration file.
 
 Key Binding:
-	Use Ctrl+Space or Alt+1 to toggle Eng/Chi Mode.
-	Use Shift+Space or Alt+2 to toggle Half/Full Mode.
-	Use Ctrl+Shift or Alt+3 to switch to next IM engine.
-
-	NOTICE: Ctrl/Shift/Space binding fail in jfbterm,
-	the solution is to execute termim once before jfbterm
+	Use Alt+1 to toggle Eng/Chi Mode.
+	Use Alt+2 to toggle Half/Full Mode.
+	Use Alt+3 to switch to next IM engine.
 
 About IM Engine:
 	Take fd number specified at argv[1],
