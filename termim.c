@@ -33,12 +33,18 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
-#include <sys/kbio.h>
 
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef __linux
+#define __dead2 __attribute__ ((noreturn))
+#include <pty.h>
+#include <time.h>
+#include <utmp.h>
+#else
 #include <libutil.h>
+#endif
 #include <paths.h>
 #include <signal.h>
 #include <stdio.h>
@@ -83,8 +89,7 @@ main(int argc, char *argv[])
 	time_t tvec, start;
 	char obuf[BUFSIZ];
 	char ibuf[BUFSIZ];
-	keymap_t kmap;
-	
+
 	fd_set rfd;
 	int flushtime = 30;
 	int readstdin;
@@ -179,17 +184,12 @@ main(int argc, char *argv[])
 	signal(SIGINT, &sigforwarder);
 	signal(SIGQUIT, &sigforwarder);
 	signal(SIGPIPE, &sigforwarder);
+#ifndef __linux
 	signal(SIGINFO, &sigforwarder);
+#endif
 	signal(SIGUSR1, &sigforwarder);
 	signal(SIGUSR2, &sigforwarder);
 	signal(SIGWINCH, &winchforwarder);
-
-	ioctl(STDIN_FILENO, GIO_KEYMAP, &kmap);
-	kmap.key[42].map[2] = CTRL_SHIFT;
-	kmap.key[54].map[2] = CTRL_SHIFT;
-	kmap.key[57].map[2] = CTRL_SPACE;
-	kmap.key[57].map[1] = SHIFT_SPACE;
-	ioctl(STDIN_FILENO, PIO_KEYMAP, &kmap);
 
 #define RESET "\033[m\033[2J\033[H"
 	term_write(term, RESET, sizeof(RESET));
@@ -375,11 +375,9 @@ fail(void)
 static void
 done(int eno)
 {
-	time_t tvec;
 
 	if (ttyflg)
 		(void)tcsetattr(STDIN_FILENO, TCSAFLUSH, &tt);
-	tvec = time(NULL);
 	term_destroy(term);
 	term_destroy(term2);
 	(void)close(master);
