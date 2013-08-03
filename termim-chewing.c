@@ -171,6 +171,7 @@ int main(int argc, char *argv[]){
 	int skip;
 	int n;
 	fd_set rfd;
+	char chbuf[100];
 
 	if((s=getenv("TERMIM"))!=NULL)
 		out=strtol(s, NULL, 10);
@@ -180,7 +181,7 @@ int main(int argc, char *argv[]){
 	signal(SIGWINCH, &winch);
 	winch(0);
 
-	chewing_Init( PREFIX "/share/chewing", "/tmp");
+	chewing_Init( PREFIX "/share/libchewing3/chewing", chbuf);
 	ctx = chewing_new();
 	chewing_set_ChiEngMode(ctx, 0);
 	chewing_set_KBType(ctx, chewing_KBStr2Num("KB_DEFAULT"));
