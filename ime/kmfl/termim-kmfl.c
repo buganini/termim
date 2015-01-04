@@ -32,8 +32,14 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/select.h>
-#include <sys/types.h>
+#ifdef __linux
+#define __dead2 __attribute__ ((noreturn))
+#include <pty.h>
+#include <time.h>
+#include <utmp.h>
+#else
+#include <libutil.h>
+#endif
 
 #include <kmfl/kmfl.h>
 #include <kmfl/libkmfl.h>
