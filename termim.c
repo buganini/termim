@@ -53,7 +53,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-#include "keymap.h"
 #include "term.h"
 
 extern int ambi_width;

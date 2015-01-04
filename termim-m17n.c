@@ -37,7 +37,6 @@
 
 #include <m17n.h>
 
-#include "keymap.h"
 #include "utf8.h"
 
 int out;
@@ -139,7 +138,7 @@ int main(int argc, char *argv[]){
 						escape_buf[escape_i]=ibuf[i];
 						escape_i+=1;
 						if(escape_i==2 && escape_buf[1]!='['){
-							escape=0;						
+							escape=0;
 							switch(escape_buf[1]){
 								case '3':
 									M17N_FINI();

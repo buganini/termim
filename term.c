@@ -46,7 +46,7 @@ void term_destroy(struct term *term){
 	char buf[128];
 	write(term->out, buf, sprintf(buf, "\033[r\033[m\033[2J\033[H\033[?12l\033[?25h"));
 	free(term);
-	
+
 }
 
 void term_set_size(struct term *term, int siz_row, int siz_col){
@@ -316,7 +316,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 									case 1:
 										for(t=term->cur_row;t>=1;--t)
 											WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
-										break;										
+										break;
 									case 2:
 										for(t=1;t<=term->siz_row;++t)
 											WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH\033[2K", t, 1));
@@ -340,7 +340,7 @@ ssize_t term_write(struct term *term, const char *ibuf, size_t len){
 										WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, 1));
 										for(t=term->cur_col;t>=1;--t)
 											WRITE(term->out, " ", 1);
-										break;										
+										break;
 									case 2:
 										WRITE(term->out, buf, sprintf(buf, "\033[%d;%dH", term->cur_row, 1));
 										for(t=1;t<=term->siz_col;++t)

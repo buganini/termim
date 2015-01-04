@@ -38,7 +38,6 @@
 #include <kmfl/kmfl.h>
 #include <kmfl/libkmfl.h>
 
-#include "keymap.h"
 #include "utf8.h"
 
 char desc[1024];
@@ -58,7 +57,7 @@ void output_char(void *connection, BYTE q){
 };
 void output_beep(void *connection){};
 void forward_keyevent(void *connection, UINT key, UINT state){
-	
+
 };
 void erase_char(void *connection){
 	write(out, "\b", 1);
@@ -132,7 +131,7 @@ int main(int argc, char *argv[]){
 						escape_buf[escape_i]=ibuf[i];
 						escape_i+=1;
 						if(escape_i==2 && escape_buf[1]!='['){
-							escape=0;						
+							escape=0;
 							switch(escape_buf[1]){
 								case '3':
 									kmfl_delete_keyboard_instance(ic);
