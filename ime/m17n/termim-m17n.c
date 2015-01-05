@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Kuan-Chung Chiu <buganini@gmail.com>
+ * Copyright (c) 2011, 2015 Kuan-Chung Chiu <buganini@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,6 @@
 #include <termios.h>
 #include <unistd.h>
 #ifdef __linux
-#define __dead2 __attribute__ ((noreturn))
 #include <pty.h>
 #include <time.h>
 #include <utmp.h>
@@ -42,7 +41,7 @@
 #endif
 
 #include <m17n.h>
-
+#include <termim.h>
 #include "utf8.h"
 
 int out;
@@ -80,15 +79,8 @@ void m17n_interpret(MInputContext *ic, char c){
 int main(int argc, char *argv[]){
 	char *eargv[]={"termim-next", NULL};
 	char *s;
-	unsigned char ibuf[BUFSIZ];
-	char escape_buf[128];
-	int escape_i=0;
-	int escape=0;
-	int i;
-	int n;
 	MInputMethod *im;
 	MInputContext *ic;
-	fd_set rfd;
 
 	if((s=getenv("TERMIM"))!=NULL)
 		out=strtol(s, NULL, 10);
@@ -113,62 +105,39 @@ int main(int argc, char *argv[]){
 	printf("M17N: %s-%s\n", argv[1], argv[2]);
 	printf("\033[K");
 
-	FD_ZERO(&rfd);
+
 	while(1){
-		FD_SET(STDIN_FILENO, &rfd);
-		n = select(STDIN_FILENO+1, &rfd, 0, 0, NULL);
-		if (n < 0 && errno != EINTR)
+		struct termim_event *event = termim_read_input();
+		if(event->type == TERMIM_EVENT_EOF){
 			break;
-		if (n > 0 && FD_ISSET(STDIN_FILENO, &rfd)){
-			n=read(STDIN_FILENO, ibuf, BUFSIZ);
-			if(n<=0){
-			}else{
-				if(n==1){
-					switch((unsigned char)*ibuf){
-						case CTRL_SHIFT:
-							M17N_FINI();
-							execvp(eargv[0], eargv);
-							break;
-					}
+		}else if(event->type == TERMIM_EVENT_RAW){
+			if(event->raw)
+				write(out, event->raw, event->raw_length);
+		}else if(event->type == TERMIM_EVENT_KEY){
+			if(event->modifiers == TERMIM_MOD_ALT){
+				switch(event->code){
+					case TERMIM_KEY_3:
+						M17N_FINI();
+						execvp(eargv[0], eargv);
+						break;
+					default:
+						if(event->raw)
+							write(out, event->raw, event->raw_length);
+						break;
 				}
-				for(i=0;i<n;++i){
-					switch((unsigned char)(ibuf[i])){
-						case '\x1b':
-							if(escape)
-								write(out, escape_buf, escape_i);
-							escape_i=0;
-							escape=1;
-							break;
-					}
-					if(escape){
-						escape_buf[escape_i]=ibuf[i];
-						escape_i+=1;
-						if(escape_i==2 && escape_buf[1]!='['){
-							escape=0;
-							switch(escape_buf[1]){
-								case '3':
-									M17N_FINI();
-									execvp(eargv[0], eargv);
-									break;
-								default:
-									write(out, escape_buf, escape_i);
-							}
-						}
-						if((ibuf[i]>='a' && ibuf[i]<='z') || (ibuf[i]>='A' && ibuf[i]<='N') || (ibuf[i]>='P' && ibuf[i]<='Z') || ibuf[i]=='~'){
-							escape=0;
-							write(out, escape_buf, escape_i);
-						}
-					}else{
-						if((ibuf[i] & 0xFF00)==0 && isprint(ibuf[i]))
-							m17n_interpret(ic, ibuf[i]);
-						else{
-							write(out, ibuf+i, 1);
-						}
-					}
+			}else if(event->modifiers == 0){
+				if(isprint(event->code)){
+					m17n_interpret(ic, event->code);
+				}else{
+					if(event->raw)
+						write(out, event->raw, event->raw_length);
 				}
 			}
 		}
+		if(event->raw){
+			free(event->raw);
+		}
+		free(event);
 	}
-
 	return 0;
 }
