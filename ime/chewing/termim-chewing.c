@@ -33,7 +33,6 @@
 #include <termios.h>
 #include <unistd.h>
 #ifdef __linux
-#define __dead2 __attribute__ ((noreturn))
 #include <pty.h>
 #include <time.h>
 #include <utmp.h>
@@ -42,7 +41,7 @@
 #endif
 
 #include <chewing/chewing.h>
-#include "termim.h"
+#include <termim.h>
 #include "utf8.h"
 
 ChewingContext *ctx;
