@@ -291,6 +291,7 @@ int main(int argc, char *argv[]){
 		if(event->raw){
 			free(event->raw);
 		}
+		free(event);
 		if(chewing_commit_Check(ctx)){
 			s=chewing_commit_String(ctx);
 			write(out, s, strlen(s));
