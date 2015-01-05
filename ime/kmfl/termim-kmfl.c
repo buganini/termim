@@ -108,7 +108,7 @@ int main(int argc, char *argv[]){
 		}else if(event->type == TERMIM_EVENT_KEY){
 			if(event->modifiers == TERMIM_MOD_ALT){
 				switch(event->code){
-					case TERMIM_KEY_3:
+					case TERMIM_KEY_1:
 						kmfl_delete_keyboard_instance(ic);
 						kmfl_unload_keyboard(kbd);
 						execvp(eargv[0], eargv);

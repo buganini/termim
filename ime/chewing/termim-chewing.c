@@ -200,19 +200,19 @@ int main(int argc, char *argv[]){
 			if(event->modifiers == TERMIM_MOD_ALT){
 				switch(event->code){
 					case TERMIM_KEY_1:
+						s=chewing_buffer_String(ctx);
+						write(out, buf, sprintf(buf, "%s", s));
+						chewing_handle_Esc(ctx);
+						execvp(eargv[0], eargv);
+						break;
+					case TERMIM_KEY_2:
 						chewing_set_ChiEngMode(ctx, chewing_get_ChiEngMode(ctx)?0:1);
 						s=chewing_buffer_String(ctx);
 						write(out, buf, sprintf(buf, "%s", s));
 						chewing_handle_Esc(ctx);
 						break;
-					case TERMIM_KEY_2:
-						chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
-						break;
 					case TERMIM_KEY_3:
-						s=chewing_buffer_String(ctx);
-						write(out, buf, sprintf(buf, "%s", s));
-						chewing_handle_Esc(ctx);
-						execvp(eargv[0], eargv);
+						chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
 						break;
 					default:
 						if(event->raw)

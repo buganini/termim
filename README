@@ -14,9 +14,12 @@ Usage:
 	or put it in your shell configuration file.
 
 Key Binding:
-	Use Alt+1 to toggle Eng/Chi Mode.
-	Use Alt+2 to toggle Half/Full Mode.
-	Use Alt+3 to switch to next IM engine.
+	Global:
+		Use Alt+1 to switch to next IM engine.
+
+	Chewing:
+		Use Alt+2 to toggle Eng/Chi Mode.
+		Use Alt+3 to toggle Half/Full Mode.
 
 About IM Engine:
 	Take fd number specified at argv[1],
