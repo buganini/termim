@@ -2,7 +2,7 @@ DESTDIR?=
 PREFIX?=/usr/local
 LOCALBASE?=${PREFIX}
 CFLAGS+=-Wall -O2 -I${PREFIX}/include -I../.. -DPREFIX='"${PREFIX}"'
-LDFLAGS+=-L${LOCALBASE}/lib -ltermim -lm17n
+LDFLAGS+=-L${LOCALBASE}/lib -ltermim -lm17n -lm17n-core
 
 all: termim-m17n
 
