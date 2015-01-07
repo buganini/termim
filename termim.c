@@ -110,6 +110,9 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	if(getenv("TERMIM")!=NULL)
+		err(1, "already in termim");
+
 	if(pipe(tube)==-1)
 		err(1, "pipe");
 
