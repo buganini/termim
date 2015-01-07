@@ -95,6 +95,12 @@ struct termim_event * termim_read_input(){
 							event->modifiers = TERMIM_MOD_ALT;
 							i+=1;
 							return event;
+						case '4':
+							event->type = TERMIM_EVENT_KEY;
+							event->code = TERMIM_KEY_4;
+							event->modifiers = TERMIM_MOD_ALT;
+							i+=1;
+							return event;
 						default:
 							event->type = TERMIM_EVENT_RAW;
 							event->raw = strdup(escape_buf);

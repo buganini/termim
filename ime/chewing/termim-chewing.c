@@ -81,11 +81,11 @@ void draw(){
 	IntervalType itv;
 	char tbuf[512];
 	printf("\033[H\033[?25l");
-	char *ChiEng[2]={"英數", "注音"};
-	char *Shape[2]={"半形", "全形"};
+	char *ChiEng[]={"英數", "注音", "符號"};
+	char *Shape[]={"半形", "全形"};
 
 	//language bar
-	printf("[%s][%s] ", ChiEng[chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
+	printf("[%s][%s] ", ChiEng[chewing_get_easySymbolInput(ctx)?2:chewing_get_ChiEngMode(ctx)?1:0], Shape[chewing_get_ShapeMode(ctx)?1:0]);
 
 	//edit buffer
 	n=chewing_cursor_Current(ctx);
@@ -210,9 +210,17 @@ int main(int argc, char *argv[]){
 						s=chewing_buffer_String(ctx);
 						write(out, buf, sprintf(buf, "%s", s));
 						chewing_handle_Esc(ctx);
+						if(!chewing_get_ChiEngMode(ctx)){
+							chewing_set_easySymbolInput(ctx, 0);
+						}
 						break;
 					case TERMIM_KEY_3:
 						chewing_set_ShapeMode(ctx, chewing_get_ShapeMode(ctx)?0:1);
+						break;
+					case TERMIM_KEY_4:
+						if(chewing_get_ChiEngMode(ctx)){
+							chewing_set_easySymbolInput(ctx, chewing_get_easySymbolInput(ctx)?0:1);
+						}
 						break;
 					default:
 						if(event->raw)
